@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Diplomado Programación con .NET</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="landing.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <button class="topbar__toggle" id="sidebarToggle" aria-label="Toggle sidebar">☰</button>
+    <a class="topbar__home" href="#/" id="homeBtn">⌂</a>
+    <span class="topbar__brand">Diplomado .NET</span>
+    <span class="topbar__path" id="pathIndicator"></span>
+  </header>
+
+  <aside class="sidebar" id="sidebar">
+    <nav class="sidebar__nav" id="sidebarNav"></nav>
+  </aside>
+
+  <main class="main">
+
+    <section class="view view--landing" id="landing-view"></section>
+
+    <section class="view view--markdown" id="markdown-view">
+      <div class="markdown-toolbar" id="mdToolbar"></div>
+      <div class="markdown-content" id="mdContent"></div>
+    </section>
+
+    <section class="view view--iframe" id="iframe-view">
+      <iframe id="iframeContent" src="about:blank"></iframe>
+    </section>
+
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+  <script src="data.js"></script>
+  <script src="landing.js"></script>
+</body>
+</html>

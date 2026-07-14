@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 11 — Introducción a ASP.NET Core</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 11</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>Introducción a ASP.NET Core</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 3 · Desarrollo Web con ASP.NET Core</p>
+                <h1>Introducción a ASP.NET Core</h1>
+                <p class="subtitle">Comienza tu viaje en el desarrollo web moderno con .NET. Aprende qué es ASP.NET Core, su arquitectura y cómo crear tu primera aplicación web.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 11 · Diplomado Programación con .NET</p>
+                <p><span class="tag">ASP.NET Core</span> <span class="tag">Web API</span> <span class="tag">Kestrel</span> <span class="tag">Routing</span> <span class="tag">Minimal APIs</span></p>`
+            },
+            {
+                title: "¿Qué es ASP.NET Core?",
+                content: `<h2>¿Qué es ASP.NET Core?</h2>
+                <p>ASP.NET Core es un <strong>framework de código abierto</strong> y multiplataforma creado por Microsoft para construir aplicaciones web modernas, APIs REST, y servicios en la nube.</p>
+                <div class="comparison">
+                    <div>
+                        <h4>ASP.NET Framework (Clásico) ❌</h4>
+                        <code>Solo Windows<br>System.Web.dll<br>.NET Framework 4.x<br>WebForms / MVC 5<br>XML pesado<br>Lento en rendimiento</code>
+                    </div>
+                    <div>
+                        <h4>ASP.NET Core ✅</h4>
+                        <code>Linux / macOS / Windows<br>Modular (NuGet)<br>.NET 6, 7, 8 LTS<br>MVC, Web API, Blazor<br>JSON nativo (System.Text.Json)<br>Altísimo rendimiento</code>
+                    </div>
+                </div>
+                <p>Lanzado inicialmente como ASP.NET 5 en 2016, hoy es la plataforma principal de Microsoft para desarrollo web.</p>
+                <div class="callout callout--success"><strong>💡 ASP.NET Core está en el top 10 de frameworks web más rápidos del mundo, compitiendo con Node.js y Go.</strong></div>`
+            },
+            {
+                title: ".NET vs ASP.NET Core",
+                content: `<h2>.NET vs ASP.NET Core</h2>
+                <p>Es importante entender la diferencia:</p>
+                <table>
+                    <tr><th>Concepto</th><th>Qué es</th><th>Ejemplo</th></tr>
+                    <tr><td><strong>.NET (SDK / Runtime)</strong></td><td>Plataforma base: compilador, runtime, BCL</td><td><code>dotnet new console</code> — apps de consola</td></tr>
+                    <tr><td><strong>ASP.NET Core</strong></td><td>Framework web sobre .NET</td><td><code>dotnet new webapi</code> — APIs web</td></tr>
+                    <tr><td><strong>Entity Framework Core</strong></td><td>ORM sobre .NET</td><td><code>dotnet new webapi</code> + EF Core</td></tr>
+                </table>
+                <pre><code>// Diagrama conceptual
+// ┌─────────────────────────────┐
+// │       ASP.NET Core          │ ← Framework web
+// ├─────────────────────────────┤
+// │       .NET Runtime          │ ← Runtime (BCL, GC, JIT)
+// ├─────────────────────────────┤
+// │   Sistema Operativo         │ ← Linux / Windows / macOS
+// └─────────────────────────────┘</code></pre>
+                <p>Cuando instalas el <strong>.NET SDK</strong>, obtienes todo lo necesario para compilar y ejecutar aplicaciones ASP.NET Core.</p>`
+            },
+            {
+                title: "dotnet new webapi",
+                content: `<h2>Crear un proyecto Web API</h2>
+                <p>Con un solo comando desde la terminal:</p>
+                <pre><code># Crear proyecto Web API
+dotnet new webapi -n MiPrimeraApi
+
+# Entrar al directorio
+cd MiPrimeraApi
+
+# Restaurar dependencias
+dotnet restore
+
+# Ejecutar
+dotnet run
+
+# Con recarga automática (hot reload)
+dotnet watch run</code></pre>
+                <p>Esto crea la estructura base con:</p>
+                <ul>
+                    <li>Archivo <code>.csproj</code> con configuración del proyecto</li>
+                    <li><code>Program.cs</code> con la configuración de la aplicación</li>
+                    <li>Controlador de ejemplo <code>WeatherForecastController.cs</code></li>
+                    <li><code>appsettings.json</code> para configuración</li>
+                    <li>Swagger preconfigurado (OpenAPI)</li>
+                </ul>
+                <div class="callout callout--info"><strong>💡 .NET 8 usa Minimal API por defecto en <code>dotnet new webapi</code>. Para controladores usa <code>dotnet new webapi --use-controllers</code>.</strong></div>`
+            },
+            {
+                title: "Estructura del proyecto",
+                content: `<h2>Estructura del proyecto Web API</h2>
+                <pre><code>MiPrimeraApi/
+├── Controllers/          # Controladores (MVC / API)
+│   └── WeatherForecastController.cs
+├── Properties/
+│   └── launchSettings.json   # Config de ejecución
+├── appsettings.json          # Configuración general
+├── appsettings.Development.json
+├── Program.cs                # Punto de entrada
+├── MiPrimeraApi.csproj       # Dependencias
+└── WeatherForecast.cs        # Modelo de ejemplo</code></pre>
+                <pre><code>// Program.cs (Minimal API style - .NET 8)
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();</code></pre>
+                <p><code>Program.cs</code> es el corazón de la aplicación. Aquí se configuran servicios, middleware y el pipeline HTTP.</p>`
+            },
+            {
+                title: "Kestrel",
+                content: `<h2>Kestrel — El servidor web de ASP.NET Core</h2>
+                <p>Kestrel es el servidor web <strong>cross-platform</strong> incluido en ASP.NET Core. Es el que maneja las peticiones HTTP entrantes.</p>
+                <table>
+                    <tr><th>Característica</th><th>Detalle</th></tr>
+                    <tr><td>Cross-platform</td><td>Funciona en Linux, macOS y Windows</td></tr>
+                    <tr><td>Rendimiento</td><td>Benchmarks superiores a Nginx y Node.js</td></tr>
+                    <tr><td>HTTP/2</td><td>Soporte nativo</td></tr>
+                    <tr><td>HTTPS</td><td>Configurable con certificados</td></tr>
+                    <tr><td>Puerto por defecto</td><td><code>http://localhost:5000</code> y <code>https://localhost:5001</code></td></tr>
+                </table>
+                <pre><code>// Configurar puertos en launchSettings.json
+"profiles": {
+  "http": {
+    "applicationUrl": "http://localhost:5000",
+    "commandName": "Project"
+  },
+  "https": {
+    "applicationUrl": "https://localhost:5001;http://localhost:5000",
+    "commandName": "Project"
+  }
+}</code></pre>
+                <div class="callout callout--warning"><strong>⚠️ En producción, Kestrel suele estar detrás de Nginx, IIS o Apache como proxy inverso.</strong></div>`
+            },
+            {
+                title: "Métodos HTTP",
+                content: `<h2>Métodos HTTP fundamentales</h2>
+                <p>ASP.NET Core expone APIs web usando los verbos del protocolo HTTP.</p>
+                <table>
+                    <tr><th>Verbo</th><th>Acción</th><th>Atributo</th><th>Código éxito</th></tr>
+                    <tr><td><code>GET</code></td><td>Obtener recursos</td><td><code>[HttpGet]</code></td><td>200 OK</td></tr>
+                    <tr><td><code>POST</code></td><td>Crear recursos</td><td><code>[HttpPost]</code></td><td>201 Created</td></tr>
+                    <tr><td><code>PUT</code></td><td>Actualizar recursos</td><td><code>[HttpPut]</code></td><td>200 OK / 204 No Content</td></tr>
+                    <tr><td><code>PATCH</code></td><td>Actualización parcial</td><td><code>[HttpPatch]</code></td><td>200 OK</td></tr>
+                    <tr><td><code>DELETE</code></td><td>Eliminar recursos</td><td><code>[HttpDelete]</code></td><td>200 OK / 204 No Content</td></tr>
+                </table>
+                <pre><code>// Ejemplo en controlador
+[ApiController]
+[Route("api/productos")]
+public class ProductosController : ControllerBase
+{
+    [HttpGet]
+    public IActionResult ObtenerTodos() { ... }
+
+    [HttpPost]
+    public IActionResult Crear([FromBody] Producto producto) { ... }
+}</code></pre>`
+            },
+            {
+                title: "Routing",
+                content: `<h2>Routing en ASP.NET Core</h2>
+                <p>El routing conecta una URL entrante con el código que la maneja.</p>
+                <h3>Routing por atributos</h3>
+                <pre><code>[Route("api/[controller]")]  // api/productos
+public class ProductosController : ControllerBase
+{
+    [HttpGet]                           // GET api/productos
+    public IActionResult Get() { }
+
+    [HttpGet("{id}")]                   // GET api/productos/5
+    public IActionResult Get(int id) { }
+
+    [HttpGet("categoria/{cat}")]        // GET api/productos/categoria/electronica
+    public IActionResult GetPorCategoria(string cat) { }
+}</code></pre>
+                <h3>Parámetros de ruta</h3>
+                <table>
+                    <tr><th>Patrón</th><th>URL</th><th>Parámetro</th></tr>
+                    <tr><td><code>{id}</code></td><td><code>/api/productos/42</code></td><td><code>id = 42</code></td></tr>
+                    <tr><td><code>{id:int}</code></td><td><code>/api/productos/42</code></td><td>Solo números</td></tr>
+                    <tr><td><code>{slug:alpha}</code></td><td><code>/api/productos/laptop-gamer</code></td><td>Solo letras</td></tr>
+                    <tr><td><code>{*rest}</code></td><td><code>/api/productos/...varios</code></td><td>Catch-all</td></tr>
+                </table>`
+            },
+            {
+                title: "Minimal APIs vs Controllers",
+                content: `<h2>Minimal APIs vs Controllers</h2>
+                <p>.NET 6 introdujo Minimal APIs como alternativa más ligera a los controladores.</p>
+                <div class="comparison">
+                    <div>
+                        <h4>Minimal APIs 🪶</h4>
+                        <pre><code>var app = WebApplication.Create();
+
+app.MapGet("/api/hola", () =>
+    "Hola Mundo");
+
+app.MapGet("/api/usuario/{nombre}", 
+    (string nombre) =>
+    $"Hola {nombre}");
+
+app.Run();</code></pre>
+                        <p>✅ Menos código<br>✅ Sin clases<br>✅ Ideal para microservicios<br>❌ Menos organizado en proyectos grandes</p>
+                    </div>
+                    <div>
+                        <h4>Controllers 🏗️</h4>
+                        <pre><code>[ApiController]
+[Route("api/[controller]")]
+public class HolaController
+    : ControllerBase
+{
+    [HttpGet]
+    public IActionResult Get()
+        => Ok("Hola Mundo");
+}</code></pre>
+                        <p>✅ Organización por clases<br>✅ Filtros y validaciones<br>✅ Ideal para APIs grandes<br>❌ Más boilerplate</p>
+                    </div>
+                </div>
+                <div class="callout callout--info"><strong>💡 Elegí Minimal APIs para prototipos y microservicios. Usá Controllers para proyectos con muchos endpoints.</strong></div>`
+            },
+            {
+                title: "Buenas prácticas",
+                content: `<h2>Buenas prácticas en ASP.NET Core</h2>
+                <table>
+                    <tr><th>Práctica</th><th>✅ Correcto</th><th>❌ Incorrecto</th></tr>
+                    <tr><td>Usar async/await</td><td><code>async Task&lt;IActionResult&gt;</code></td><td>Métodos síncronos bloqueantes</td></tr>
+                    <tr><td>Nombres consistentes</td><td><code>api/productos</code> (plural)</td><td><code>api/Producto</code> (singular)</td></tr>
+                    <tr><td>Configuración externa</td><td><code>appsettings.json</code></td><td>Valores hardcodeados</td></tr>
+                    <tr><td>DTOs para respuestas</td><td>Modelos específicos de API</td><td>Entidades de BD expuestas</td></tr>
+                    <tr><td>Swagger siempre</td><td>Documentación automática</td><td>APIs sin documentar</td></tr>
+                    <tr><td>HTTPS en producción</td><td>Redirección forzada</td><td>HTTP plano</td></tr>
+                </table>
+                <pre><code>// Configuración correcta
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.PropertyNamingPolicy
+            = JsonNamingPolicy.CamelCase;
+    });</code></pre>`
+            },
+            {
+                title: "Ejemplo Hola Mundo API",
+                content: `<h2>Ejemplo: Hola Mundo API</h2>
+                <pre><code>// Crear el proyecto
+// dotnet new webapi -n HolaMundoApi
+// cd HolaMundoApi
+
+// Program.cs
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+// Endpoint GET simple
+app.MapGet("/", () => "Bienvenido a mi API!");
+
+// Endpoint con parámetro
+app.MapGet("/saludar/{nombre}", (string nombre) =>
+{
+    return new { mensaje = $"Hola, {nombre}!", fecha = DateTime.Now };
+});
+
+// Endpoint POST
+app.MapPost("/saludar", (SaludoRequest req) =>
+{
+    return Results.Ok(new { mensaje = $"Hola, {req.Nombre}!", req.Edad });
+});
+
+app.Run();
+
+public record SaludoRequest(string Nombre, int Edad);</code></pre>
+                <div class="callout callout--success"><strong>✅ Probá los endpoints en Swagger navegando a <code>http://localhost:5000/swagger</code>.</strong></div>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Qué es <strong>ASP.NET Core</strong> y en qué se diferencia de .NET Framework clásico</li>
+                    <li>Crear proyectos Web API con <code>dotnet new webapi</code></li>
+                    <li>La estructura de un proyecto ASP.NET Core</li>
+                    <li>Qué es <strong>Kestrel</strong> y cómo funciona el servidor web</li>
+                    <li>Los <strong>verbos HTTP</strong> (GET, POST, PUT, DELETE)</li>
+                    <li><strong>Routing</strong> por atributos y parámetros de ruta</li>
+                    <li>Diferencias entre <strong>Minimal APIs</strong> y <strong>Controllers</strong></li>
+                    <li>Crear tu primera API funcional con endpoints variados</li>
+                </ul>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡Primera clase del Módulo 3 completada!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

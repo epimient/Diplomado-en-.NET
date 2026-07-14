@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 06 — Clases, Objetos y Constructores</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 06</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>Clases, Objetos y Constructores</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 2 · Programación Orientada a Objetos</p>
+                <h1>Clases, Objetos y Constructores</h1>
+                <p class="subtitle">Da el salto de la programación procedural a la Orientada a Objetos. Aprende a modelar entidades del mundo real.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 06 · Diplomado Programación con .NET</p>
+                <p><span class="tag">Clases</span> <span class="tag">Objetos</span> <span class="tag">Constructores</span> <span class="tag">POO</span></p>`
+            },
+            {
+                title: "¿Qué es POO?",
+                content: `<h2>Programación Orientada a Objetos</h2>
+                <p>La <strong>POO</strong> (OOP en inglés) es un paradigma que organiza el código en torno a <strong>objetos</strong> que combinan datos y comportamiento.</p>
+                <div class="comparison">
+                    <div>
+                        <h4>Programación procedural</h4>
+                        <p>Datos y funciones separados. Todo en Program.cs.</p>
+                        <code>string nombre = "Ana";<br>int edad = 25;<br>Saludar(nombre);</code>
+                    </div>
+                    <div>
+                        <h4>POO</h4>
+                        <p>Datos + métodos encapsulados en clases.</p>
+                        <code>Persona p = new Persona();<br>p.Nombre = "Ana";<br>p.Saludar();</code>
+                    </div>
+                </div>
+                <p>Pilares de la POO:</p>
+                <ul>
+                    <li><strong>Encapsulamiento</strong> — ocultar detalles internos</li>
+                    <li><strong>Herencia</strong> — reutilizar código entre clases</li>
+                    <li><strong>Polimorfismo</strong> — un mismo método, múltiples formas</li>
+                    <li><strong>Abstracción</strong> — modelar solo lo relevante</li>
+                </ul>`
+            },
+            {
+                title: "Clases y objetos",
+                content: `<h2>Clase vs Objeto</h2>
+                <div class="comparison">
+                    <div>
+                        <h4>Clase</h4>
+                        <p>Es el <strong>molde</strong> o plano. Define atributos y métodos.</p>
+                        <code>class Persona {<br>    string Nombre;<br>    int Edad;<br>    void Saludar() {...}<br>}</code>
+                    </div>
+                    <div>
+                        <h4>Objeto</h4>
+                        <p>Es una <strong>instancia concreta</strong> del molde.</p>
+                        <code>Persona p1 = new Persona();<br>p1.Nombre = "Ana";<br>p1.Saludar();<br><br>Persona p2 = new Persona();<br>p2.Nombre = "Luis";</code>
+                    </div>
+                </div>
+                <p>La clase es el concepto universal; el objeto es la realización particular. <strong>De una clase podemos crear muchos objetos.</strong></p>
+                <div class="callout callout--info"><strong>💡 Analogía:</strong> La clase es el molde de una galleta. El objeto es cada galleta que horneas con ese molde.</div>`
+            },
+            {
+                title: "Crear una clase",
+                content: `<h2>Definir una clase en C#</h2>
+                <p>En un proyecto .NET, las clases suelen ir en archivos separados con el mismo nombre.</p>
+                <h3>Persona.cs</h3>
+                <pre><code>public class Persona
+{
+    // Atributos (campos)
+    public string nombre;
+    public int edad;
+    public string ciudad;
+
+    // Métodos
+    public void Saludar()
+    {
+        Console.WriteLine($"Hola, soy {nombre} de {ciudad}");
+    }
+
+    public void CumplirAnios()
+    {
+        edad++;
+        Console.WriteLine($"¡Feliz cumpleaños! Ahora tengo {edad} años.");
+    }
+}</code></pre>
+                <div class="callout callout--success"><strong>💡 La palabra <code>public</code> significa que es accesible desde cualquier parte del programa.</strong></div>`
+            },
+            {
+                title: "Usar la clase (Program.cs)",
+                content: `<h2>Crear y usar objetos</h2>
+                <pre><code>// Program.cs
+Persona persona1 = new Persona();
+persona1.nombre = "Ana";
+persona1.edad = 25;
+persona1.ciudad = "Madrid";
+persona1.Saludar();
+persona1.CumplirAnios();
+
+Persona persona2 = new Persona();
+persona2.nombre = "Carlos";
+persona2.edad = 30;
+persona2.ciudad = "México DF";
+persona2.Saludar();
+
+// Salida:
+// Hola, soy Ana de Madrid
+// ¡Feliz cumpleaños! Ahora tengo 26 años.
+// Hola, soy Carlos de México DF</code></pre>
+                <table>
+                    <tr><th>Paso</th><th>Código</th><th>Explicación</th></tr>
+                    <tr><td>1. Declarar variable</td><td><code>Persona p;</code></td><td>Tipo Persona</td></tr>
+                    <tr><td>2. Crear instancia</td><td><code>new Persona()</code></td><td>Reserva memoria</td></tr>
+                    <tr><td>3. Asignar valores</td><td><code>p.nombre = "Ana"</code></td><td>Modifica atributos</td></tr>
+                    <tr><td>4. Llamar métodos</td><td><code>p.Saludar()</code></td><td>Ejecuta comportamiento</td></tr>
+                </table>`
+            },
+            {
+                title: "Constructores",
+                content: `<h2>Constructores</h2>
+                <p>Un <strong>constructor</strong> es un método especial que se ejecuta automáticamente al crear un objeto. Sirve para <strong>inicializar</strong> los atributos.</p>
+                <pre><code>public class Persona
+{
+    public string nombre;
+    public int edad;
+
+    // Constructor (mismo nombre que la clase, sin tipo de retorno)
+    public Persona(string nombreInicial, int edadInicial)
+    {
+        nombre = nombreInicial;
+        edad = edadInicial;
+        Console.WriteLine($"Persona creada: {nombre}");
+    }
+}
+
+// Uso
+Persona p = new Persona("Ana", 25);
+// Salida: Persona creada: Ana</code></pre>
+                <div class="callout callout--info"><strong>💡 El constructor se llama con <code>new</code>. Si no definimos ninguno, C# crea un constructor vacío automático.</strong></div>`
+            },
+            {
+                title: "Sobrecarga de constructores",
+                content: `<h2>Múltiples constructores (sobrecarga)</h2>
+                <p>Podemos tener varios constructores con diferentes parámetros:</p>
+                <pre><code>public class Producto
+{
+    public string nombre;
+    public double precio;
+    public int stock;
+
+    // Constructor completo
+    public Producto(string nombre, double precio, int stock)
+    {
+        this.nombre = nombre;
+        this.precio = precio;
+        this.stock = stock;
+    }
+
+    // Constructor con valores por defecto
+    public Producto(string nombre, double precio)
+        : this(nombre, precio, 0) { }
+
+    // Constructor vacío (valores default)
+    public Producto()
+    {
+        nombre = "Sin nombre";
+        precio = 0;
+        stock = 0;
+    }
+}</code></pre>
+                <p>Uso:</p>
+                <pre><code>Producto p1 = new Producto("Laptop", 999.99, 10);
+Producto p2 = new Producto("Mouse", 25.50);     // stock = 0
+Producto p3 = new Producto();                    // valores default</code></pre>`
+            },
+            {
+                title: "this",
+                content: `<h2>La palabra clave this</h2>
+                <p><code>this</code> hace referencia al <strong>objeto actual</strong>. Se usa para distinguir entre parámetros y atributos con el mismo nombre.</p>
+                <pre><code>public class Estudiante
+{
+    public string nombre;
+    public int edad;
+
+    // Sin this: nombres diferentes
+    public Estudiante(string nombreInicial, int edadInicial)
+    {
+        nombre = nombreInicial;
+        edad = edadInicial;
+    }
+
+    // Con this: mismo nombre, this aclara
+    public Estudiante(string nombre, int edad)
+    {
+        this.nombre = nombre;  // this.nombre = atributo
+        this.edad = edad;      // nombre = parámetro
+    }
+
+    public void Mostrar()
+    {
+        Console.WriteLine($"{this.nombre}, {this.edad} años");
+        // this es opcional aquí (no hay ambigüedad)
+    }
+}</code></pre>`
+            },
+            {
+                title: "Métodos de instancia",
+                content: `<h2>Métodos que operan sobre objetos</h2>
+                <pre><code>public class Rectangulo
+{
+    public double ancho;
+    public double alto;
+
+    public Rectangulo(double ancho, double alto)
+    {
+        this.ancho = ancho;
+        this.alto = alto;
+    }
+
+    public double CalcularArea()
+    {
+        return ancho * alto;
+    }
+
+    public double CalcularPerimetro()
+    {
+        return 2 * (ancho + alto);
+    }
+
+    public void Escalar(double factor)
+    {
+        ancho *= factor;
+        alto *= factor;
+    }
+
+    public void Mostrar()
+    {
+        Console.WriteLine($"Rectángulo: {ancho} x {alto}");
+        Console.WriteLine($"Área: {CalcularArea():F2}");
+        Console.WriteLine($"Perímetro: {CalcularPerimetro():F2}");
+    }
+}</code></pre>`
+            },
+            {
+                title: "Buenas prácticas",
+                content: `<h2>Buenas prácticas con clases</h2>
+                <table>
+                    <tr><th>Práctica</th><th>✅ Correcto</th><th>❌ Incorrecto</th></tr>
+                    <tr><td>Nombres en PascalCase</td><td><code>class Persona</code></td><td><code>class persona</code></td></tr>
+                    <tr><td>Un archivo por clase</td><td><code>Persona.cs</code>, <code>Producto.cs</code></td><td>Todas las clases en Program.cs</td></tr>
+                    <tr><td>Constructores para inicializar</td><td><code>new Persona("Ana", 25)</code></td><td>Crear objeto vacío y asignar luego</td></tr>
+                    <tr><td>Usar this cuando hay ambigüedad</td><td><code>this.nombre = nombre</code></td><td>Nombres diferentes innecesarios</td></tr>
+                    <tr><td>Métodos con propósito claro</td><td><code>CalcularArea()</code></td><td><code>ProcesarDatos()</code></td></tr>
+                </table>
+                <pre><code>// ✅ Clase bien diseñada
+public class Libro
+{
+    public string titulo;
+    public string autor;
+    public int año;
+
+    public Libro(string titulo, string autor, int año)
+    {
+        this.titulo = titulo;
+        this.autor = autor;
+        this.año = año;
+    }
+}</code></pre>`
+            },
+            {
+                title: "Ejemplo completo",
+                content: `<h2>Ejemplo completo: Sistema de Biblioteca</h2>
+                <pre><code>// Libro.cs
+public class Libro
+{
+    public string titulo;
+    public string autor;
+    public string isbn;
+    public bool prestado;
+
+    public Libro(string titulo, string autor, string isbn)
+    {
+        this.titulo = titulo;
+        this.autor = autor;
+        this.isbn = isbn;
+        this.prestado = false;
+    }
+
+    public void Prestar()
+    {
+        if (prestado)
+            Console.WriteLine($"'{titulo}' ya está prestado.");
+        else
+        {
+            prestado = true;
+            Console.WriteLine($"'{titulo}' prestado con éxito.");
+        }
+    }
+
+    public void Devolver()
+    {
+        if (!prestado)
+            Console.WriteLine($"'{titulo}' no estaba prestado.");
+        else
+        {
+            prestado = false;
+            Console.WriteLine($"'{titulo}' devuelto con éxito.");
+        }
+    }
+
+    public void MostrarInfo()
+    {
+        string estado = prestado ? "Prestado" : "Disponible";
+        Console.WriteLine($"{titulo} - {autor} [{estado}]");
+    }
+}</code></pre>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Qué es la POO y sus 4 pilares fundamentales</li>
+                    <li>Diferencia entre clase (molde) y objeto (instancia)</li>
+                    <li>Crear clases con atributos y métodos</li>
+                    <li>Crear objetos con <code>new</code></li>
+                    <li>Definir constructores con y sin parámetros</li>
+                    <li>Sobrecargar constructores</li>
+                    <li>Usar <code>this</code> para referenciar el objeto actual</li>
+                </ul>
+                <p style="margin-top:1rem;"><strong>Comandos clave para recordar:</strong></p>
+                <pre><code>dotnet new console -n Biblioteca
+cd Biblioteca
+# Crear Libro.cs, editar Program.cs
+dotnet run</code></pre>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡A modelar objetos!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

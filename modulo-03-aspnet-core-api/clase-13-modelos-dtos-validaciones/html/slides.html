@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 13 — Modelos, DTOs y Validaciones</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 13</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>Modelos, DTOs y Validaciones</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 3 · Desarrollo Web con ASP.NET Core</p>
+                <h1>Modelos, DTOs y Validaciones</h1>
+                <p class="subtitle">Aprende a definir modelos de datos, separar responsabilidades con DTOs y validar entradas con Data Annotations en ASP.NET Core.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 13 · Diplomado Programación con .NET</p>
+                <p><span class="tag">Modelos</span> <span class="tag">DTOs</span> <span class="tag">Data Annotations</span> <span class="tag">Validación</span> <span class="tag">ModelState</span></p>`
+            },
+            {
+                title: "Modelos de datos",
+                content: `<h2>Modelos de datos</h2>
+                <p>Un <strong>modelo</strong> es una clase que representa una entidad del dominio. Es la representación de los datos con los que trabaja tu aplicación.</p>
+                <pre><code>// Modelo de dominio
+public class Producto
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+    public string Descripcion { get; set; }
+    public decimal Precio { get; set; }
+    public int Stock { get; set; }
+    public DateTime FechaCreacion { get; set; }
+    public bool EstaActivo { get; set; }
+    public string Categoria { get; set; }
+}
+
+// Crear un producto
+var producto = new Producto
+{
+    Nombre = "Laptop Gamer",
+    Precio = 14999.99m,
+    Stock = 10,
+    FechaCreacion = DateTime.Now
+};</code></pre>
+                <div class="callout callout--info"><strong>💡 Los modelos de dominio suelen ser la representación directa de las tablas de la base de datos.</strong></div>`
+            },
+            {
+                title: "DTOs — Data Transfer Objects",
+                content: `<h2>DTOs — Objetos de Transferencia de Datos</h2>
+                <p>Un <strong>DTO</strong> es un objeto simple que se usa para transferir datos entre capas o entre el servidor y el cliente. No contiene lógica de negocio.</p>
+                <pre><code>// DTO para crear un producto (entrada)
+public class CrearProductoRequest
+{
+    public string Nombre { get; set; }
+    public string Descripcion { get; set; }
+    public decimal Precio { get; set; }
+    public int Stock { get; set; }
+}
+
+// DTO para devolver un producto (salida)
+public class ProductoResponse
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+    public decimal Precio { get; set; }
+    public int Stock { get; set; }
+    public string Categoria { get; set; }
+}
+
+// Uso en controlador
+[HttpPost]
+public ActionResult&lt;ProductoResponse&gt; Crear(CrearProductoRequest request)
+{
+    var producto = new Producto
+    {
+        Nombre = request.Nombre,
+        Descripcion = request.Descripcion,
+        Precio = request.Precio,
+        Stock = request.Stock,
+        FechaCreacion = DateTime.Now
+    };
+
+    // Guardar en BD...
+
+    return CreatedAtAction(nameof(Get), new { id = producto.Id },
+        new ProductoResponse
+        {
+            Id = producto.Id,
+            Nombre = producto.Nombre,
+            Precio = producto.Precio,
+            Stock = producto.Stock
+        });
+}</code></pre>`
+            },
+            {
+                title: "Por qué separar modelos de DTOs",
+                content: `<h2>¿Por qué separar modelos de DTOs?</h2>
+                <div class="comparison">
+                    <div>
+                        <h4>Sin DTOs ❌</h4>
+                        <code>[HttpPost]
+public IActionResult Crear(Producto p)
+{
+    // Recibe TODOS los campos
+    // El cliente podría enviar
+    // "Id": 999, "EstaActivo": false
+    _db.Productos.Add(p);
+    _db.SaveChanges();
+    return Ok(p);
+}</code>
+                        <p style="color:var(--red);">⚠️ Sobreexposición<br>⚠️ El cliente controla campos internos<br>⚠️ Acoplamiento total</p>
+                    </div>
+                    <div>
+                        <h4>Con DTOs ✅</h4>
+                        <code>[HttpPost]
+public IActionResult Crear(
+    CrearProductoRequest req)
+{
+    // Solo recibe lo necesario
+    var p = new Producto
+    {
+        Nombre = req.Nombre,
+        Precio = req.Precio
+    };
+    _db.Productos.Add(p);
+    _db.SaveChanges();
+
+    var response = new ProductoResponse
+    {
+        Id = p.Id,
+        Nombre = p.Nombre,
+        Precio = p.Precio
+    };
+    return CreatedAtAction(..., response);
+}</code>
+                        <p style="color:var(--green);">✅ Control total<br>✅ Datos justos para cada operación<br>✅ Desacoplamiento</p>
+                    </div>
+                </div>`
+            },
+            {
+                title: "Data Annotations: [Required]",
+                content: `<h2>Data Annotations — [Required]</h2>
+                <p>Las <strong>Data Annotations</strong> son atributos del espacio <code>System.ComponentModel.DataAnnotations</code> que permiten definir reglas de validación directamente sobre las propiedades del modelo.</p>
+                <pre><code>using System.ComponentModel.DataAnnotations;
+
+public class CrearProductoRequest
+{
+    [Required(ErrorMessage = "El nombre es obligatorio")]
+    public string Nombre { get; set; }
+
+    [Required]
+    [StringLength(500, MinimumLength = 10,
+        ErrorMessage = "La descripción debe tener entre 10 y 500 caracteres")]
+    public string Descripcion { get; set; }
+}
+
+public class RegistrarUsuarioRequest
+{
+    [Required(ErrorMessage = "El correo es obligatorio")]
+    [EmailAddress(ErrorMessage = "Formato de correo inválido")]
+    public string Email { get; set; }
+
+    [Required]
+    [StringLength(100, MinimumLength = 6)]
+    public string Password { get; set; }
+
+    [Compare("Password", ErrorMessage = "Las contraseñas no coinciden")]
+    public string ConfirmarPassword { get; set; }
+}</code></pre>
+                <div class="callout"><strong>💡 [Required] asegura que el valor no sea null. Para strings, también asegura que no esté vacío.</strong></div>`
+            },
+            {
+                title: "[StringLength], [Range], [EmailAddress]",
+                content: `<h2>Más Data Annotations</h2>
+                <table>
+                    <tr><th>Atributo</th><th>Qué valida</th><th>Ejemplo</th></tr>
+                    <tr><td><code>[StringLength(max)]</code></td><td>Longitud máxima de string</td><td><code>[StringLength(100)]</code></td></tr>
+                    <tr><td><code>[StringLength(max, MinLength)]</code></td><td>Longitud min y max</td><td><code>[StringLength(500, MinLength = 10)]</code></td></tr>
+                    <tr><td><code>[Range(min, max)]</code></td><td>Valor numérico en rango</td><td><code>[Range(0.01, 999999)]</code></td></tr>
+                    <tr><td><code>[EmailAddress]</code></td><td>Formato de correo válido</td><td><code>[EmailAddress]</code></td></tr>
+                    <tr><td><code>[Phone]</code></td><td>Formato de teléfono</td><td><code>[Phone]</code></td></tr>
+                    <tr><td><code>[Url]</code></td><td>URL válida</td><td><code>[Url]</code></td></tr>
+                    <tr><td><code>[RegularExpression(pattern)]</code></td><td>Patrón regex personalizado</td><td><code>[RegularExpression(@"^\d{3}-\d{4}$")]</code></td></tr>
+                    <tr><td><code>[Compare]</code></td><td>Compara con otra propiedad</td><td><code>[Compare("Password")]</code></td></tr>
+                </table>
+                <pre><code>public class ProductoRequest
+{
+    [Required]
+    [StringLength(100)]
+    public string Nombre { get; set; }
+
+    [Required]
+    [StringLength(2000, MinimumLength = 20)]
+    public string Descripcion { get; set; }
+
+    [Required]
+    [Range(0.01, 100000.00)]
+    public decimal Precio { get; set; }
+
+    [Range(0, 10000)]
+    public int Stock { get; set; }
+
+    [EmailAddress]
+    public string ProveedorEmail { get; set; }
+
+    [Url]
+    public string ImagenUrl { get; set; }
+}</code></pre>`
+            },
+            {
+                title: "Validación automática con ModelState",
+                content: `<h2>Validación automática con ModelState</h2>
+                <p>Cuando usas <code>[ApiController]</code>, ASP.NET Core valida automáticamente el modelo antes de que el método se ejecute. Si hay errores, devuelve <strong>400 Bad Request</strong> con los detalles.</p>
+                <pre><code>[ApiController]
+[Route("api/[controller]")]
+public class UsuariosController : ControllerBase
+{
+    [HttpPost]
+    public IActionResult Crear(RegistrarUsuarioRequest request)
+    {
+        // Si el modelo no es válido, ASP.NET Core automáticamente
+        // devuelve 400 Bad Request con los errores.
+        // Este código SOLO se ejecuta si el modelo es válido.
+
+        if (!ModelState.IsValid)
+        {
+            // Si necesitas validación adicional manual
+            return BadRequest(ModelState);
+        }
+
+        // Procesar registro...
+        return Ok(new { mensaje = "Usuario registrado" });
+    }
+}</code></pre>
+                <div class="callout callout--success"><strong>✅ Con [ApiController] no necesitas verificar ModelState.IsValid manualmente. Ocurre automáticamente.</strong></div>
+                <p>Respuesta automática de error:</p>
+                <pre><code>{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "title": "One or more validation errors occurred.",
+  "status": 400,
+  "errors": {
+    "Nombre": ["El nombre es obligatorio"],
+    "Precio": ["El precio debe estar entre 0.01 y 100000"]
+  }
+}</code></pre>`
+            },
+            {
+                title: "Respuestas de error",
+                content: `<h2>Respuestas de error consistentes</h2>
+                <p>Es buena práctica estandarizar las respuestas de error de tu API.</p>
+                <pre><code>// Modelo de error personalizado
+public class ErrorResponse
+{
+    public int StatusCode { get; set; }
+    public string Mensaje { get; set; }
+    public List<string> Errores { get; set; } = new();
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+}
+
+// Uso en controlador
+[HttpGet("{id}")]
+public IActionResult Get(int id)
+{
+    var producto = _productos.FirstOrDefault(p => p.Id == id);
+    if (producto is null)
+    {
+        return NotFound(new ErrorResponse
+        {
+            StatusCode = 404,
+            Mensaje = $"Producto con ID {id} no encontrado"
+        });
+    }
+    return Ok(producto);
+}
+
+// Middleware global para errores no controlados
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new ErrorResponse
+        {
+            StatusCode = 500,
+            Mensaje = "Error interno del servidor"
+        });
+    });
+});</code></pre>
+                <div class="callout callout--warning"><strong>⚠️ Nunca expongas detalles internos como stack traces en producción.</strong></div>`
+            },
+            {
+                title: "Ejemplo API usuarios",
+                content: `<h2>Ejemplo: API de Usuarios con DTOs y validación</h2>
+                <pre><code>// ──── Modelo ────
+public class Usuario
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+    public string Email { get; set; }
+    public string PasswordHash { get; set; }
+    public DateTime FechaRegistro { get; set; }
+}
+
+// ──── DTOs ────
+public class CrearUsuarioRequest
+{
+    [Required(ErrorMessage = "El nombre es obligatorio")]
+    [StringLength(100, MinimumLength = 2)]
+    public string Nombre { get; set; }
+
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; }
+
+    [Required]
+    [StringLength(50, MinimumLength = 6)]
+    public string Password { get; set; }
+
+    [Compare("Password")]
+    public string ConfirmarPassword { get; set; }
+}
+
+public class UsuarioResponse
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+    public string Email { get; set; }
+    public DateTime FechaRegistro { get; set; }
+}
+
+// ──── Controlador ────
+[ApiController]
+[Route("api/[controller]")]
+public class UsuariosController : ControllerBase
+{
+    private static List&lt;Usuario&gt; _usuarios = new();
+    private static int _nextId = 1;
+
+    [HttpPost]
+    public ActionResult&lt;UsuarioResponse&gt; Crear(CrearUsuarioRequest req)
+    {
+        var usuario = new Usuario
+        {
+            Id = _nextId++,
+            Nombre = req.Nombre,
+            Email = req.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(req.Password),
+            FechaRegistro = DateTime.UtcNow
+        };
+
+        _usuarios.Add(usuario);
+
+        var response = new UsuarioResponse
+        {
+            Id = usuario.Id,
+            Nombre = usuario.Nombre,
+            Email = usuario.Email,
+            FechaRegistro = usuario.FechaRegistro
+        };
+
+        return CreatedAtAction(nameof(Get), new { id = usuario.Id }, response);
+    }
+
+    [HttpGet("{id}")]
+    public ActionResult&lt;UsuarioResponse&gt; Get(int id)
+    {
+        var u = _usuarios.FirstOrDefault(x => x.Id == id);
+        if (u is null)
+            return NotFound(new { error = "Usuario no encontrado" });
+
+        return Ok(new UsuarioResponse
+        {
+            Id = u.Id, Nombre = u.Nombre,
+            Email = u.Email, FechaRegistro = u.FechaRegistro
+        });
+    }
+}</code></pre>`
+            },
+            {
+                title: "Buenas prácticas",
+                content: `<h2>Buenas prácticas</h2>
+                <table>
+                    <tr><th>Práctica</th><th>✅ Correcto</th><th>❌ Incorrecto</th></tr>
+                    <tr><td>Separar modelos de DTOs</td><td>DTO para cada operación</td><td>Exponer entidades de BD directamente</td></tr>
+                    <tr><td>DTOs específicos</td><td><code>CrearProductoRequest</code>, <code>ProductoResponse</code></td><td>Un solo DTO para todo</td></tr>
+                    <tr><td>Validar con Data Annotations</td><td><code>[Required] [Range] [EmailAddress]</code></td><td>Validar manualmente con ifs</td></tr>
+                    <tr><td>Usar [ApiController]</td><td>Validación automática</td><td>Verificar ModelState manualmente</td></tr>
+                    <tr><td>Errores consistentes</td><td>Objeto ErrorResponse estándar</td><td>Mensajes de error diferentes cada vez</td></tr>
+                    <tr><td>Error messages en español</td><td><code>ErrorMessage = "..."</code></td><td>Mensajes en inglés por defecto</td></tr>
+                </table>
+                <pre><code>// Buen ejemplo de DTO completo
+public class ActualizarPerfilRequest
+{
+    [StringLength(100)]
+    public string? Nombre { get; set; }
+
+    [Phone]
+    public string? Telefono { get; set; }
+
+    [Range(18, 120)]
+    public int? Edad { get; set; }
+}</code></pre>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Crear <strong>modelos de dominio</strong> para representar entidades</li>
+                    <li>Crear <strong>DTOs</strong> de entrada y salida para desacoplar la API del modelo interno</li>
+                    <li>Por qué <strong>separar modelos de DTOs</strong> (seguridad, control, mantenibilidad)</li>
+                    <li>Usar <strong>Data Annotations</strong>: [Required], [StringLength], [Range], [EmailAddress], [Compare], [RegularExpression]</li>
+                    <li>La <strong>validación automática</strong> con [ApiController] y ModelState</li>
+                    <li>Crear <strong>respuestas de error</strong> consistentes</li>
+                    <li>Implementar una <strong>API de usuarios</strong> completa con DTOs y validación</li>
+                </ul>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡Clase 13 completada!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

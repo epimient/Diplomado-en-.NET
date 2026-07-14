@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 01 — Introduccion a .NET, C# y el primer programa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f1117;
+            --bg-surface: #1a1d2e;
+            --bg-elevated: #242840;
+            --bg-hover: #2e3250;
+            --accent-cyan: #7dcfff;
+            --accent-green: #9ece6a;
+            --accent-purple: #bb9af7;
+            --accent-orange: #ff9e64;
+            --accent-red: #f7768e;
+            --accent-blue: #7aa2f7;
+            --text-primary: #c0caf5;
+            --text-muted: #565f89;
+            --border: #2e3450;
+            --code-bg: #131520;
+            --radius: 10px;
+            --radius-sm: 6px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 17px; }
+        body {
+            background: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .sidebar-header {
+            padding: 1.25rem 1.25rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-header .course-tag {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-purple);
+            margin-bottom: 0.4rem;
+        }
+        .sidebar-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.3;
+        }
+        .sidebar-progress {
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+        .progress-bar {
+            height: 3px;
+            background: var(--bg-elevated);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green));
+            border-radius: 2px;
+            transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem 0;
+        }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        .nav-section {
+            padding: 0.5rem 1.25rem 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.5rem 1.25rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border-left: 2px solid transparent;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        .nav-item.active {
+            background: rgba(125, 207, 255, 0.08);
+            color: var(--accent-cyan);
+            border-left-color: var(--accent-cyan);
+            font-weight: 500;
+        }
+        .nav-item .nav-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            min-width: 1.4rem;
+        }
+        .nav-item.active .nav-num { color: var(--accent-cyan); }
+
+        /* ===== MAIN ===== */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        /* ===== TOOLBAR ===== */
+        .toolbar {
+            padding: 0.6rem 2rem;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 44px;
+        }
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .toolbar-breadcrumb {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+        .toolbar-breadcrumb span { color: var(--accent-purple); }
+        .toolbar-counter {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            background: var(--bg-elevated);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+        }
+
+        /* ===== SLIDE AREA ===== */
+        .slide-area {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 2.5rem 3rem;
+            overflow-y: auto;
+        }
+        .slide-area::-webkit-scrollbar { width: 5px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide {
+            max-width: 820px;
+            width: 100%;
+            animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        .slide h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.6rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.75rem;
+            line-height: 1.15;
+            letter-spacing: -0.5px;
+        }
+        .slide h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-bottom: 0.75rem;
+            line-height: 1.25;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .slide h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 1.2em;
+            background: var(--accent-cyan);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .slide h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+            margin-top: 1rem;
+        }
+        .slide p {
+            font-size: 1.05rem;
+            line-height: 1.75;
+            margin-bottom: 0.7rem;
+            color: var(--text-primary);
+        }
+        .slide ul, .slide ol {
+            margin-bottom: 0.7rem;
+            padding-left: 1.4rem;
+        }
+        .slide li {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 0.3rem;
+            color: var(--text-primary);
+        }
+        .slide li::marker { color: var(--accent-cyan); }
+
+        /* ===== EYEBROW / SUBTITLE ===== */
+        .eyebrow {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: var(--accent-purple);
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 1.2rem;
+            line-height: 1.6;
+        }
+
+        /* ===== TAGS ===== */
+        .tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            background: rgba(125, 207, 255, 0.1);
+            color: var(--accent-cyan);
+            margin-right: 0.3rem;
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.3px;
+        }
+        .tag--green { background: rgba(158, 206, 106, 0.1); color: var(--accent-green); }
+        .tag--purple { background: rgba(187, 154, 247, 0.1); color: var(--accent-purple); }
+
+        /* ===== CODE ===== */
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+        }
+        .slide p code, .slide li code, .slide td code {
+            background: var(--bg-elevated);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+            border: 1px solid rgba(125, 207, 255, 0.1);
+        }
+        pre {
+            position: relative;
+            background: var(--code-bg);
+            padding: 1rem 1.2rem;
+            border-radius: var(--radius);
+            overflow-x: auto;
+            margin-bottom: 0.8rem;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent-blue);
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            border: none;
+            font-size: 0.88rem;
+            line-height: 1.65;
+            color: var(--text-primary);
+        }
+        pre .lang-tag {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.7rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        /* ===== TABLES ===== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+        }
+        th {
+            text-align: left;
+            padding: 0.6rem 0.8rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            background: var(--bg-elevated);
+            border-bottom: 2px solid var(--border);
+            font-size: 0.88rem;
+            letter-spacing: 0.3px;
+        }
+        td {
+            padding: 0.55rem 0.8rem;
+            border-bottom: 1px solid rgba(46, 52, 80, 0.5);
+            color: var(--text-primary);
+        }
+        tr:hover td { background: rgba(125, 207, 255, 0.02); }
+        tr:last-child td { border-bottom: none; }
+
+        /* ===== CALLOUTS ===== */
+        .callout {
+            position: relative;
+            padding: 0.8rem 1rem 0.8rem 2.8rem;
+            margin-bottom: 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.92rem;
+            line-height: 1.65;
+            border: 1px solid;
+        }
+        .callout::before {
+            position: absolute;
+            left: 0.9rem;
+            top: 0.8rem;
+            font-size: 0.85rem;
+        }
+        .callout {
+            border-color: rgba(122, 162, 247, 0.2);
+            background: rgba(122, 162, 247, 0.05);
+        }
+        .callout::before { content: 'i'; color: var(--accent-blue); font-weight: 700; font-style: italic; }
+        .callout--success {
+            border-color: rgba(158, 206, 106, 0.2);
+            background: rgba(158, 206, 106, 0.05);
+        }
+        .callout--success::before { content: '\2713'; color: var(--accent-green); font-style: normal; }
+        .callout--warning {
+            border-color: rgba(255, 158, 100, 0.2);
+            background: rgba(255, 158, 100, 0.05);
+        }
+        .callout--warning::before { content: '!'; color: var(--accent-orange); font-weight: 700; font-style: normal; }
+        .callout--error {
+            border-color: rgba(247, 118, 142, 0.2);
+            background: rgba(247, 118, 142, 0.05);
+        }
+        .callout--error::before { content: '\2717'; color: var(--accent-red); font-style: normal; }
+
+        /* ===== COMPARISON ===== */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+        }
+        .comparison > div {
+            padding: 0.9rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-surface);
+        }
+        .comparison > div:first-child { border-left: 3px solid var(--accent-red); }
+        .comparison > div:last-child { border-left: 3px solid var(--accent-green); }
+        .comparison h4 {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.4rem;
+        }
+        .comparison p, .comparison code { font-size: 0.9rem; }
+
+        /* ===== DIAGRAM ===== */
+        .diagram {
+            background: var(--code-bg);
+            padding: 1.2rem;
+            border-radius: var(--radius);
+            margin-bottom: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.9;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent-purple);
+            color: var(--accent-cyan);
+        }
+
+        /* ===== NAV BUTTONS ===== */
+        .nav-buttons {
+            padding: 0.65rem 2rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border);
+        }
+        .nav-buttons button {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 0.45rem 1.2rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.15s ease;
+        }
+        .nav-buttons button:hover:not(:disabled) {
+            background: var(--bg-hover);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+        .nav-buttons button:disabled { opacity: 0.25; cursor: default; }
+        .nav-key {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-left: 0.3rem;
+        }
+        .dots {
+            display: flex;
+            gap: 0.35rem;
+            align-items: center;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .dot:hover { background: var(--text-muted); }
+        .dot.active {
+            background: var(--accent-cyan);
+            box-shadow: 0 0 6px rgba(125, 207, 255, 0.4);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .slide-area { padding: 1.5rem; }
+            .slide h1 { font-size: 1.6rem; }
+            .slide h2 { font-size: 1.15rem; }
+            .comparison { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="course-tag">Diplomado .NET</div>
+            <h2>Clase 01</h2>
+        </div>
+        <div class="sidebar-progress">
+            <div class="progress-label">
+                <span>Progreso</span>
+                <span id="progressText">1 / 32</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 3.125%"></div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" id="toc"></nav>
+    </div>
+    <div class="main">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <span class="toolbar-breadcrumb" id="breadcrumb"><span>Teoria</span> / Portada</span>
+            </div>
+            <span class="toolbar-counter" id="counter">01 / 32</span>
+        </div>
+        <div class="slide-area">
+            <div class="slide" id="slide"></div>
+        </div>
+        <div class="nav-buttons">
+            <button id="prevBtn" onclick="prevSlide()">&larr; Anterior <span class="nav-key">[←]</span></button>
+            <span class="dots" id="dotsContainer"></span>
+            <button id="nextBtn" onclick="nextSlide()">Siguiente <span class="nav-key">[→]</span></button>
+        </div>
+    </div>
+    <script>
+        var sections = [
+            { name: 'Teoria', start: 0, end: 12 },
+            { name: 'Practica', start: 13, end: 25 },
+            { name: 'Cierre', start: 26, end: 29 }
+        ];
+
+        function getSection(idx) {
+            for (var i = 0; i < sections.length; i++) {
+                if (idx >= sections[i].start && idx <= sections[i].end) return sections[i].name;
+            }
+            return '';
+        }
+
+        var slides = [
+            { title: "Portada", content: '<p class="eyebrow">Modulo 1 - Fundamentos de C# y .NET</p><h1>Introduccion a .NET, C# y creacion del primer programa</h1><p class="subtitle">Descubriremos que es .NET, que papel juega C#, como funciona la plataforma por dentro y crearemos nuestra primera aplicacion interactiva desde la terminal.</p><p style="color:var(--text-muted);font-size:0.82rem;margin-top:1rem;">Clase 01 &middot; Diplomado en Desarrollo de Software con .NET</p>' },
+            { title: "Que aprenderas hoy", content: '<h2>Que aprenderas en esta clase</h2><ul><li>Explicar que es <strong>.NET</strong> usando analogias sencillas</li><li>Diferenciar <strong>.NET</strong>, <strong>C#</strong>, el <strong>SDK</strong> y el <strong>editor de codigo</strong></li><li>Conocer la evolucion de .NET (Framework, Core, moderno)</li><li>Entender que hace el <strong>CLR</strong> (el motor de tu codigo)</li><li>Diferenciar <strong>SDK</strong> y <strong>Runtime</strong></li><li>Verificar que .NET este instalado en tu computadora</li><li>Crear un proyecto de consola desde la terminal</li><li>Saber que hace cada archivo creado por .NET</li><li>Compilar y ejecutar con <code>dotnet run</code></li><li>Usar <code>Console.WriteLine</code>, <code>Console.Write</code> y <code>Console.ReadLine</code></li><li>Crear variables de tipo <code>string</code></li><li>Unir textos con <strong>interpolacion de cadenas</strong></li><li>Comprender el flujo universal: <strong>Entrada - Proceso - Salida</strong></li></ul>' },
+            { title: "Que es .NET?", content: '<h2>Que es .NET?</h2><p><strong>.NET</strong> (pronunciado "dot net") es una <strong>plataforma de desarrollo de software</strong> creada por Microsoft.</p><p>No es un simple programa ni un solo lenguaje. Es una <strong>caja de herramientas gigante</strong> que contiene todo lo necesario para construir, compilar, probar, ejecutar y distribuir aplicaciones.</p><p>Con .NET puedes crear:</p><ul><li><strong>Aplicaciones de Consola</strong> - Programas basados en texto</li><li><strong>Aplicaciones Web</strong> - Sitios interactivos y portales</li><li><strong>APIs REST</strong> - Sistemas que permiten que aplicaciones se hablen entre si</li><li><strong>Sistemas Empresariales</strong> - Grandes programas para bancos, hospitales</li><li><strong>Microservicios</strong> - Pequenos programas independientes en la nube</li><li><strong>Aplicaciones Moviles</strong> - Apps para Android e iOS</li><li><strong>Aplicaciones de Escritorio</strong> - Programas con ventanas</li><li><strong>Servicios en la Nube, IA, IoT y Videojuegos</strong></li></ul><p><span class="tag tag--green">Open Source</span> <span class="tag">Multiplataforma</span> <span class="tag tag--purple">Moderno</span></p><div class="callout callout--success"><strong>.NET es completamente open source desde 2016.</strong> Funciona en Windows, Linux y macOS.</div>' },
+            { title: "Analogia y componentes", content: '<h2>Que es cada componente</h2><table><tr><th>Termino</th><th>Que es en palabras simples</th></tr><tr><td><strong>Plataforma .NET</strong></td><td>Todo el conjunto de herramientas, bibliotecas y reglas para crear software</td></tr><tr><td><strong>Lenguaje C#</strong></td><td>El idioma que usas para escribir instrucciones a la computadora</td></tr><tr><td><strong>SDK</strong></td><td>Las herramientas de desarrollo que instalas para crear codigo</td></tr><tr><td><strong>CLR</strong></td><td>El motor que ejecuta tu codigo cuando lo corres</td></tr><tr><td><strong>VS Code</strong></td><td>Un editor de codigo ligero y gratuito donde escribes tu codigo</td></tr><tr><td><strong>NuGet</strong></td><td>Una tienda de paquetes listos para usar</td></tr></table><h3>La analogia de la Cocina Profesional</h3><ul><li><strong>C#:</strong> Es la <strong>receta escrita</strong> que describe los pasos para hacer el plato</li><li><strong>.NET:</strong> Es la <strong>cocina profesional completa</strong> (estufa, hornos, ingredientes)</li><li><strong>SDK:</strong> Es el <strong>kit del chef</strong> (cuchillos, tazas medidoras)</li><li><strong>CLR:</strong> Es la <strong>estufa encendida</strong> que hace que los alimentos se cocinen</li><li><strong>VS Code:</strong> Es tu <strong>tabla de picar</strong> bien iluminada</li><li><strong>NuGet:</strong> Es la <strong>despensa de condimentos listos</strong></li></ul>' },
+            { title: "Que es C# y diferencias", content: '<h2>Que es C#?</h2><p><strong>C#</strong> (pronunciado "C Sharp") es un <strong>lenguaje de programacion</strong>. Es el idioma que usamos para darle instrucciones a la computadora dentro de .NET.</p><pre><code><span class="lang-tag">csharp</span>Console.WriteLine("Hola mundo");</code></pre><h3>.NET, C# y Visual Studio no son lo mismo</h3><table><tr><th>Componente</th><th>Que es</th></tr><tr><td><strong>.NET</strong></td><td>La plataforma base (bibliotecas, motor, herramientas)</td></tr><tr><td><strong>C#</strong></td><td>El lenguaje de programacion (el texto que escribes)</td></tr><tr><td><strong>VS Code</strong></td><td>Editor de codigo ligero, rapido y gratuito (Windows, Mac, Linux)</td></tr><tr><td><strong>Visual Studio</strong></td><td>IDE grande y pesado, con muchas herramientas visuales (Windows)</td></tr></table><div class="callout callout--success"><strong>En este diplomado usaremos:</strong> .NET SDK + C# + VS Code + Terminal + Git/GitHub</div>' },
+            { title: "Multiplataforma e historia", content: '<h2>Multiplataforma e Historia de .NET</h2><h3>Multiplataforma</h3><p>El .NET moderno es <strong>multiplataforma de verdad</strong>. Puedes instalar las herramientas en Windows, macOS o Linux. El codigo funciona igual en todos.</p><p><strong>Por que es vital?</strong> Porque casi todos los servidores en la nube (AWS, Azure, Google Cloud) usan Linux.</p><h3>Historia y evolucion</h3><table><tr><th>Ano</th><th>Version</th><th>Caracteristica</th></tr><tr><td>2002</td><td>.NET Framework</td><td>Solo Windows, cerrado. Tecnologia legada.</td></tr><tr><td>2016</td><td>.NET Core</td><td>Open source, multiplataforma. La revolucion.</td></tr><tr><td>2020</td><td>.NET 5</td><td>Unificacion: Framework + Core en una plataforma.</td></tr><tr><td>2023</td><td>.NET 8 LTS</td><td>Version estable recomendada. Soporte largo plazo.</td></tr></table><div class="callout"><strong>Resumen:</strong> .NET Framework (2002, solo Windows) &rarr; .NET Core (2016, multiplataforma) &rarr; .NET moderno (2020+, unificado)</div>' },
+            { title: "Como viaja tu codigo", content: '<h2>El ecosistema .NET: Como viaja tu codigo</h2><p>Cuando escribes un programa en C#, la computadora no puede leer tus palabras directamente. Pasa por un flujo de traduccion:</p><div class="diagram">Tu Codigo en C# (.cs)<br>&darr; (Compilacion de desarrollo)<br>Compilador Roslyn<br>&darr;<br>Codigo Intermedio (IL)<br>&darr; (Compilacion en caliente - JIT)<br>Motor CLR<br>&darr;<br>Codigo Maquina (ceros y unos)<br>&darr;<br>Ejecucion en el Sistema Operativo!</div><ol><li><strong>Tu codigo en C#:</strong> Escribes instrucciones en lenguaje humano</li><li><strong>Compilador Roslyn:</strong> Traduce tu codigo a un lenguaje intermedio (IL)</li><li><strong>Motor CLR:</strong> Toma ese codigo y lo traduce a codigo maquina para tu procesador</li><li><strong>Ejecucion:</strong> Tu computadora ejecuta las instrucciones</li></ol>' },
+            { title: "Que es el CLR", content: '<h2>Que es el CLR (Common Language Runtime)?</h2><p>El <strong>CLR</strong> es el <strong>motor de ejecucion</strong> de .NET. Es el director de la obra.</p><p>Cuando tu codigo ha sido traducido a lenguaje intermedio (IL), el CLR toma el mando y se encarga de:</p><ol><li><strong>Administrar la memoria:</strong> Decide donde se guardan tus datos en la RAM y limpia lo que ya no usas</li><li><strong>Manejar errores:</strong> Si algo sale mal, evita que la computadora colapse y te avisa</li><li><strong>Seguridad:</strong> Revisa que el programa no intente hacer cosas prohibidas</li><li><strong>Traduccion final:</strong> Usa el compilador JIT para convertir el codigo a instrucciones de tu procesador</li></ol><div class="callout"><strong>Resumen:</strong> El CLR es como un jefe de obra que supervisa que todo salga bien cuando tu codigo se ejecuta.</div>' },
+            { title: "GC y JIT", content: '<h2>Codigo administrado, Garbage Collector y JIT</h2><h3>Codigo administrado</h3><p>El codigo en C# se ejecuta bajo la vigilancia del CLR. Tu no gestionas la memoria RAM manualmente.</p><pre><code><span class="lang-tag">csharp</span>string nombre = "Laura";</code></pre><p>El CLR busca espacio en la RAM, guarda "Laura" y la libera cuando terminas.</p><h3>Garbage Collector (Recolector de Basura)</h3><p><strong>Analogia:</strong> Como un mesero que recoge los platos vacios de tu mesa para dejar espacio libre. Si no lo hiciera, la mesa se llenaria de platos sucios.</p><p>El GC pasa automaticamente, identifica datos sin referencias y libera esa memoria.</p><h3>Compilacion JIT (Just-In-Time)</h3><p><strong>Analogia:</strong> Como un traductor simultaneo que traduce cada frase <em>justo a tiempo</em> a medida que el orador habla.</p><p>El JIT toma el codigo intermedio (IL) y lo traduce al dialecto exacto de tu procesador en el momento que se ejecuta.</p>' },
+            { title: "SDK vs Runtime", content: '<h2>SDK y Runtime: Cual necesitas</h2><div class="comparison"><div><h4>Runtime (Entorno de Ejecucion)</h4><p>Contiene el motor minimo (CLR) para que los programas de .NET se abran y funcionen.</p><p><strong>Para quien:</strong> El usuario final.</p><p><strong>Analogia:</strong> El enchufe de la pared que te da energia para prender la television.</p></div><div><h4>SDK (Kit de Desarrollo)</h4><p>Contiene el compilador, plantillas, herramientas de diagnostico y el Runtime.</p><p><strong>Para quien:</strong> Los desarrolladores (nosotros).</p><p><strong>Analogia:</strong> La fabrica donde se disenan y ensamblan las televisiones.</p></div></div><table><tr><th>Si quieres...</th><th>Necesitas instalar...</th></tr><tr><td>Solo correr un programa de .NET</td><td>El Runtime</td></tr><tr><td>Aprender a programar y crear apps</td><td>El SDK (contiene todo)</td></tr></table><div class="callout callout--success"><strong>En este diplomado necesitas el SDK.</strong></div>' },
+            { title: "CLI de .NET", content: '<h2>La CLI de .NET (Tu centro de mando)</h2><p>La <strong>CLI</strong> (Command-Line Interface) es la herramienta que te permite comunicarte con .NET desde la terminal.</p><table><tr><th>Comando</th><th>Para que sirve</th></tr><tr><td><code>dotnet --version</code></td><td>Muestra la version del SDK instalado</td></tr><tr><td><code>dotnet --info</code></td><td>Reporte detallado del sistema y .NET</td></tr><tr><td><code>dotnet new list</code></td><td>Lista todas las plantillas disponibles</td></tr><tr><td><code>dotnet new console</code></td><td>Crea un proyecto de Consola</td></tr><tr><td><code>dotnet restore</code></td><td>Descarga bibliotecas externas necesarias</td></tr><tr><td><code>dotnet build</code></td><td>Revisa errores y compila el proyecto</td></tr><tr><td><code>dotnet run</code></td><td>Compila y ejecuta el programa al instante</td></tr><tr><td><code>dotnet watch run</code></td><td>Ejecuta con recarga automatica al guardar cambios</td></tr><tr><td><code>dotnet test</code></td><td>Corre pruebas automaticas</td></tr><tr><td><code>dotnet publish</code></td><td>Prepara la app para subirla a internet</td></tr></table><div class="callout"><strong>Guarda esta tabla.</strong> La usaremos constantemente durante el diplomado.</div>' },
+            { title: "Terminal e instalacion", content: '<h2>Por que la terminal? Y verificar instalacion</h2><h3>Por que usaremos la terminal</h3><ol><li><strong>Es identica en todos lados:</strong> <code>dotnet run</code> funciona igual en Windows, Mac y Linux</li><li><strong>Entiendes el proceso:</strong> Ves cuando se compila, donde se guardan archivos, que errores ocurren</li><li><strong>Automatizacion y DevOps:</strong> En empresas modernas, el codigo se despliega con scripts de terminal</li></ol><h3>Verificar instalacion</h3><pre><code><span class="lang-tag">bash</span>dotnet --version</code></pre><p>Debe responder con algo como <code>8.0.401</code>. Si responde, el SDK esta bien.</p><pre><code><span class="lang-tag">bash</span>dotnet --info</code></pre><p>Muestra detalles del sistema y Runtimes instalados.</p><div class="callout callout--error"><strong>Error comun:</strong> Si aparece "dotnet: command not found", el SDK no esta instalado o debes reiniciar la terminal. Descarga desde <code>dotnet.microsoft.com</code></div><div class="callout callout--success"><strong>Verificacion:</strong> Antes de continuar, asegurate de que <code>dotnet --version</code> te devuelva un numero.</div>' },
+            { title: "Crear carpeta y proyecto", content: '<h2>Crear la carpeta del diplomado y el primer proyecto</h2><h3>Crear carpeta de trabajo</h3><pre><code><span class="lang-tag">bash</span>mkdir DiplomadoDotNet\ncd DiplomadoDotNet\npwd</code></pre><ul><li><code>mkdir</code>: Crea una nueva carpeta</li><li><code>cd</code>: Te mete dentro de la carpeta</li><li><code>pwd</code>: Muestra la ruta actual</li></ul><h3>Crear el primer proyecto</h3><pre><code><span class="lang-tag">bash</span>dotnet new console -n HolaDotNet\ncd HolaDotNet</code></pre><ul><li><code>dotnet</code>: Llama al SDK</li><li><code>new</code>: Crea algo nuevo</li><li><code>console</code>: Plantilla de aplicacion de consola</li><li><code>-n HolaDotNet</code>: Nombre del proyecto</li></ul><div class="callout callout--success"><strong>Verificacion:</strong> Asegurate de estar dentro de <code>HolaDotNet</code>. Escribe <code>pwd</code> para confirmar.</div>' },
+            { title: "Archivos creados", content: '<h2>Archivos creados: Que hay dentro de la caja</h2><pre><code><span class="lang-tag">texto</span>HolaDotNet/\n|-- HolaDotNet.csproj   (Configuracion del proyecto)\n|-- Program.cs          (Tu codigo fuente en C#)\n|-- obj/                (Archivos temporales del compilador)\n|-- bin/                (Aparece despues de compilar)</code></pre><h3>Program.cs (El cerebro de la aplicacion)</h3><pre><code><span class="lang-tag">csharp</span>Console.WriteLine("Hello, World!");</code></pre><ul><li><code>Console</code>: Clase que representa la ventana de texto</li><li><code>.</code>: Conector para acceder a herramientas</li><li><code>WriteLine</code>: Metodo que escribe texto y salta de linea</li><li><code>"Hello, World!"</code>: Cadena de texto (String)</li><li><code>;</code>: Punto final de la instruccion</li></ul><h3>Archivo .csproj (El pasaporte del proyecto)</h3><pre><code><span class="lang-tag">xml</span>&lt;OutputType&gt;Exe&lt;/OutputType&gt;        (Programa ejecutable)\n&lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;  (Version de .NET)\n&lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;   (Importaciones automaticas)\n&lt;Nullable&gt;enable&lt;/Nullable&gt;            (Analizador de nulos)</code></pre><div class="callout callout--warning"><strong>Regla de oro:</strong> No edites la carpeta <code>obj/</code> manualmente. Si la borras, se vuelve a crear sola.</div>' },
+            { title: "Ejecutar el proyecto", content: '<h2>Ejecutar el proyecto</h2><pre><code><span class="lang-tag">bash</span>dotnet run</code></pre><p>Salida:</p><pre><code><span class="lang-tag">salida</span>Hello, World!</code></pre><div class="callout callout--success"><strong>Felicidades.</strong> Acabas de compilar y ejecutar tu primera aplicacion en .NET.</div><h2>Que hace dotnet run por debajo</h2><p>Cuando presionas Enter en <code>dotnet run</code>, ocurren tres pasos automaticos:</p><ol><li><strong>Restore (Restaurar):</strong> Revisa si necesitas bibliotecas externas y las descarga</li><li><strong>Build (Compilar):</strong> El compilador lee <code>Program.cs</code>, verifica errores y traduce a Lenguaje Intermedio (IL)</li><li><strong>Run (Ejecutar):</strong> El CLR toma el archivo compilado, lo traduce a codigo maquina con JIT y ejecuta</li></ol><h3>dotnet build vs dotnet run</h3><table><tr><th>Comando</th><th>Que hace</th><th>Cuando usarlo</th></tr><tr><td><code>dotnet build</code></td><td>Solo compila. No abre el programa.</td><td>Para verificar errores sin ejecutar</td></tr><tr><td><code>dotnet run</code></td><td>Compila y ejecuta inmediatamente</td><td>En tu dia a dia para probar cambios</td></tr></table>' },
+            { title: "VS Code y primer cambio", content: '<h2>Abrir en VS Code y primer cambio</h2><h3>Abrir el proyecto</h3><pre><code><span class="lang-tag">bash</span>code .</code></pre><p>El punto <code>.</code> le indica a VS Code que abra la carpeta actual.</p><h3>Primer cambio en el programa</h3><p>Abre <code>Program.cs</code>, borra el saludo en ingles y escribe:</p><pre><code><span class="lang-tag">csharp</span>Console.WriteLine("Hola, bienvenidos al Diplomado de Desarrollo con .NET");</code></pre><p>Guarda con <code>Ctrl + S</code> (o <code>Cmd + S</code> en Mac) y ejecuta:</p><pre><code><span class="lang-tag">bash</span>dotnet run</code></pre><p>Salida:</p><pre><code><span class="lang-tag">salida</span>Hola, bienvenidos al Diplomado de Desarrollo con .NET</code></pre><div class="callout callout--warning"><strong>Verificacion:</strong> Si ves el mensaje en espanol, ya sabes como modificar y ejecutar tu codigo. Si no, asegurate de haber guardado el archivo antes de ejecutar.</div>' },
+            { title: "Top-level statements", content: '<h2>Top-level statements (Instrucciones de nivel superior)</h2><p>Si buscas tutoriales antiguos, veras que pedian escribir una estructura enorme:</p><pre><code><span class="lang-tag">csharp</span>using System;\nnamespace HolaDotNet\n{\n    class Program\n    {\n        static void Main(string[] args)\n        {\n            Console.WriteLine("Hola mundo");\n        }\n    }\n}</code></pre><p><strong>Analogia:</strong> Es como escribir una carta formal de oficina (con membrete, fecha, firma) solo para decir "Hola".</p><p>El estilo moderno es como enviar un WhatsApp directo al grano:</p><pre><code><span class="lang-tag">csharp</span>Console.WriteLine("Hola");</code></pre><p>En C# moderno (version 9+), el compilador crea toda esa estructura por detras de escena automaticamente.</p><div class="callout callout--success"><strong>Ambos estilos son validos.</strong> En el diplomado usaremos el moderno para enfocarnos en la logica de programacion.</div>' },
+            { title: "Sintaxis y case sensitivity", content: '<h2>Sintaxis y Case Sensitivity</h2><h3>Sintaxis (Las reglas del juego)</h3><p>Las computadoras son obedientes pero cuadradas. Si cometes un error de ortografia, no sabran que hacer.</p><table><tr><th>Sintaxis Correcta</th><th>Sintaxis Incorrecta</th></tr><tr><td><code>Console.WriteLine("Hola");</code></td><td><code>Console.WriteLine(Hola);</code> (faltan comillas)</td></tr></table><h3>C# distingue mayusculas y minusculas</h3><p><code>Console</code>, <code>console</code> y <code>CONSOLE</code> son cosas completamente diferentes para el compilador.</p><table><tr><th>Correcto</th><th>Incorrecto</th></tr><tr><td><code>Console.WriteLine("Hola");</code></td><td><code>console.WriteLine("Hola");</code></td></tr></table><div class="callout callout--error"><strong>Consecuencia:</strong> El compilador te dira que <code>console</code> no existe. C# es muy estricto con las mayusculas.</div>' },
+            { title: "Comentarios", content: '<h2>Comentarios (Tus notas adhesivas en el codigo)</h2><p>Los comentarios son textos que escribes para ti o tuscompaneros. El compilador los ignora al ejecutar.</p><h3>Comentario de una sola linea</h3><pre><code><span class="lang-tag">csharp</span>// Este es un comentario: a continuacion saludamos al usuario\nConsole.WriteLine("Hola");</code></pre><h3>Comentario de multiples lineas</h3><pre><code><span class="lang-tag">csharp</span>/*\n  Este programa es el ejemplo principal de la Clase 1.\n  Creado en julio de 2026.\n*/\nConsole.WriteLine("Fin del programa");</code></pre><h3>Buena practica</h3><p>No uses comentarios para explicar lo obvio:</p><pre><code><span class="lang-tag">csharp</span>// Comentario inutil:\n// Imprime hola\nConsole.WriteLine("hola");\n\n// Comentario util:\n// Usamos este formato para cumplir con la regulacion fiscal\nConsole.WriteLine($"Total: {total}");</code></pre>' },
+            { title: "Write, WriteLine y ReadLine", content: '<h2>Mostrar y leer informacion</h2><h3>WriteLine vs Write</h3><table><tr><th>Metodo</th><th>Que hace</th></tr><tr><td><code>Console.WriteLine()</code></td><td>Escribe texto y salta a la siguiente linea</td></tr><tr><td><code>Console.Write()</code></td><td>Escribe texto pero mantiene el cursor en la misma linea</td></tr></table><p><strong>Analogia:</strong> Como una maquina de escribir. <code>Write</code> escribe letras. <code>WriteLine</code> escribe letras y baja el papel un renglon.</p><pre><code><span class="lang-tag">csharp</span>Console.WriteLine("Linea A");\nConsole.WriteLine("Linea B");\n// Salida:\n// Linea A\n// Linea B\n\nConsole.Write("Nombre: ");\nConsole.Write("Ana");\n// Salida: Nombre: Ana</code></pre><h3>Leer con ReadLine</h3><pre><code><span class="lang-tag">csharp</span>Console.ReadLine();</code></pre><p>El programa se "congela" y espera que el usuario escriba algo. Cuando presiona Enter, el programa se reactiva y toma lo escrito.</p>' },
+            { title: "Variables y tipo string", content: '<h2>Que es una variable?</h2><p>Una <strong>variable</strong> es un espacio reservado en la memoria donde guardamos un dato que puede cambiar.</p><p><strong>Analogia de la Mudanza:</strong> Imagina que estas empacando tus cosas en cajas:</p><ol><li>Decides <strong>que tipo de cosas</strong> meteras (solo libros)</li><li>Le pegas una <strong>etiqueta con un nombre</strong> ("CajaLibros")</li><li>Metes el <strong>contenido</strong> adentro</li></ol><pre><code><span class="lang-tag">csharp</span>string nombre = "Ana";</code></pre><ul><li><code>string</code>: Tipo de dato (solo textos)</li><li><code>nombre</code>: Nombre de la variable (la etiqueta)</li><li><code>=</code>: Operador de asignacion ("toma lo de la derecha y metelo en la caja")</li><li><code>"Ana"</code>: Valor inicial</li></ul><h3>El tipo string (Cadenas de texto)</h3><pre><code><span class="lang-tag">csharp</span>string pais = "Colombia";\nstring codigoPostal = "080001";\nstring saludo = "Hola, como estas?";</code></pre><p>Los valores de tipo <code>string</code> deben ir entre <strong>comillas dobles</strong>.</p>' },
+            { title: "Null, concatenacion e interpolacion", content: '<h2>Valores null y operador ??</h2><p>Si escribes <code>string nombre = Console.ReadLine();</code> puedes ver un warning de valor nulo.</p><p><code>Console.ReadLine()</code> puede devolver <code>null</code> (la nada absoluta).</p><p><strong>Proteccion:</strong> Usa el operador salvavidas <code>??</code></p><pre><code><span class="lang-tag">csharp</span>string nombre = Console.ReadLine() ?? "";\n// Si viene con datos, los usa. Si viene vacio, usa "".</code></pre><h2>Concatenacion (El pegamento clasico)</h2><pre><code><span class="lang-tag">csharp</span>string nombre = "Laura";\nConsole.WriteLine("Hola " + nombre + ", bienvenido.");</code></pre><p>El operador <code>+</code> une textos. Pero el codigo puede volverse dificil de leer con muchas comillas y signos.</p><h2>Interpolacion (El pegamento moderno)</h2><pre><code><span class="lang-tag">csharp</span>string nombre = "Laura";\nstring curso = "C#";\nConsole.WriteLine($"Hola {nombre}, estudias {curso}");</code></pre><p>Pon <code>$</code> antes de las comillas y usa <code>{}</code> para insertar variables.</p><div class="callout callout--success"><strong>La interpolacion es mas limpia, facil de leer y de escribir.</strong></div>' },
+            { title: "Entrada-Proceso-Salida", content: '<h2>El ciclo universal del software</h2><div class="diagram">[ Entrada ] &rarr; [ Proceso ] &rarr; [ Salida ]<br>(Capturar datos) &nbsp; (Hacer algo) &nbsp; (Mostrar resultado)</div><ol><li><strong>Entrada (Input):</strong> Como entran los datos (teclado, base de datos, sensor, internet)</li><li><strong>Proceso (Process):</strong> La logica del programa (sumar, ordenar, guardar)</li><li><strong>Salida (Output):</strong> El resultado (mensaje en pantalla, archivo, sonido)</li></ol><p><strong>En nuestra primera app:</strong></p><ul><li><strong>Entrada:</strong> Usuario escribe nombre con <code>Console.ReadLine()</code></li><li><strong>Proceso:</strong> Guardamos el texto en la variable <code>nombre</code></li><li><strong>Salida:</strong> Imprimimos el saludo con <code>Console.WriteLine()</code></li></ul><h3>Ejemplo inicial</h3><pre><code><span class="lang-tag">csharp</span>Console.Write("Como te llamas? ");\nstring nombre = Console.ReadLine() ?? "";\nConsole.WriteLine($"Hola, {nombre}!");\nConsole.WriteLine("Te damos la bienvenida al Diplomado de .NET!");</code></pre>' },
+            { title: "Practica guiada", content: '<h2>Practica guiada: Registro de estudiante</h2><pre><code><span class="lang-tag">csharp</span>Console.WriteLine("======================================");\nConsole.WriteLine("       REGISTRO DE ESTUDIANTE .NET    ");\nConsole.WriteLine("======================================");\n\nConsole.Write("Nombre completo: ");\nstring nombre = Console.ReadLine() ?? "";\n\nConsole.Write("Ciudad de residencia: ");\nstring ciudad = Console.ReadLine() ?? "";\n\nConsole.Write("Ocupacion actual: ");\nstring ocupacion = Console.ReadLine() ?? "";\n\nConsole.Write("Experiencia? (Si/No/Basica): ");\nstring experiencia = Console.ReadLine() ?? "";\n\nConsole.Write("Que esperas aprender?: ");\nstring expectativa = Console.ReadLine() ?? "";\n\nConsole.WriteLine();\nConsole.WriteLine("======================================");\nConsole.WriteLine($"Nombre:      {nombre}");\nConsole.WriteLine($"Ciudad:      {ciudad}");\nConsole.WriteLine($"Ocupacion:   {ocupacion}");\nConsole.WriteLine($"Experiencia: {experiencia}");\nConsole.WriteLine($"Expectativa: {expectativa}");\nConsole.WriteLine("======================================");\nConsole.WriteLine($"Registro completado, {nombre}!");</code></pre>' },
+            { title: "Analisis y ejecucion", content: '<h2>Analisis del programa</h2><ul><li><strong>Write vs WriteLine:</strong> Usamos <code>Write("Nombre: ")</code> para que el cursor se quede al lado y el usuario escriba en la misma linea</li><li><strong>Saltos en blanco:</strong> <code>WriteLine();</code> sin texto genera un espacio visual</li><li><strong>Estructura visual:</strong> Los separadores con <code>====</code> delimitan las secciones</li></ul><h2>Ejecucion esperada</h2><pre><code><span class="lang-tag">salida</span>======================================\n       REGISTRO DE ESTUDIANTE .NET\n======================================\nNombre completo: Ana Martinez\nCiudad de residencia: Barranquilla\nOcupacion actual: Estudiante\nExperiencia? (Si/No/Basica): Basica en Python\nQue esperas aprender?: Crear APIs web\n\n======================================\nNombre:      Ana Martinez\nCiudad:      Barranquilla\nOcupacion:   Estudiante\nExperiencia: Basica en Python\nExpectativa: Crear APIs web\n======================================\nRegistro completado, Ana Martinez!</code></pre>' },
+            { title: "Actividades en clase", content: '<h2>Actividades en clase</h2><h3>Actividad 1: Ficha personal</h3><p>Crea un proyecto <code>FichaPersonal</code> que pida nombre, edad, ciudad, ocupacion, comida favorita y hobby.</p><pre><code><span class="lang-tag">salida</span>========= FICHA PERSONAL =========\nNombre:          Laura Gomez\nEdad:            22 anos\nCiudad:          Barranquilla\nOcupacion:       Estudiante\nComida favorita: Pizza\nPasatiempo:      Tocar guitarra\n===================================</code></pre><h3>Actividad 2: Presentador de producto</h3><p>Crea un proyecto <code>PresentadorProducto</code> que pida nombre, categoria, precio, cantidad y descripcion.</p><h3>Actividad 3: Perfil profesional</h3><p>Crea un proyecto que pida nombre, profesion, area de interes, herramienta favorita y proyecto deseado.</p><div class="callout"><strong>Nota:</strong> Por ahora guarda todos los datos como <code>string</code>. En la siguiente clase aprenderemos tipos numericos.</div>' },
+            { title: "Errores comunes", content: '<h2>Errores comunes (Y como evitarlos)</h2><table><tr><th>Error</th><th>Incorrecto</th><th>Correcto</th></tr><tr><td>Olvidar punto y coma</td><td><code>Console.WriteLine("Hola")</code></td><td><code>Console.WriteLine("Hola");</code></td></tr><tr><td>Texto sin comillas</td><td><code>Console.WriteLine(Hola);</code></td><td><code>Console.WriteLine("Hola");</code></td></tr><tr><td>Confundir mayusculas</td><td><code>console.WriteLine("Hola");</code></td><td><code>Console.WriteLine("Hola");</code></td></tr><tr><td>Carpeta incorrecta</td><td colspan="2">Ejecutar <code>dotnet run</code> fuera de la carpeta del proyecto</td></tr><tr><td>No guardar archivo</td><td colspan="2">Modificar en VS Code sin guardar (<code>Ctrl+S</code>) antes de ejecutar</td></tr><tr><td>Olvidar $ en interpolacion</td><td><code>"Hola {nombre}"</code></td><td><code>$"Hola {nombre}"</code></td></tr></table><div class="callout callout--warning"><strong>Consejo:</strong> No te frustres por los errores. Programar es leer las pistas que te da el compilador.</div>' },
+            { title: "Leer errores y mini reto", content: '<h2>Como leer errores de compilacion</h2><p>Cuando hay un error, la terminal muestra algo como:</p><pre><code><span class="lang-tag">error</span>Program.cs(5,30): error CS1002: ; expected</code></pre><ul><li><code>Program.cs</code>: Archivo con el error</li><li><code>(5,30)</code>: Linea 5, columna 30</li><li><code>error CS1002</code>: Codigo de error oficial de C#</li><li><code>; expected</code>: "Se esperaba un punto y coma"</li></ul><h2>Mini reto: Tarjeta de presentacion</h2><p>Crea un proyecto <code>TarjetaPresentacion</code> que pida nombre, profesion, correo, telefono, ciudad y frase personal.</p><pre><code><span class="lang-tag">salida</span>==================================================\n              TARJETA DE PRESENTACION\n==================================================\n Nombre:     Eduardo Pimienta\n Profesion:  Ingeniero de Sistemas\n Correo:     eduardo@email.com\n Telefono:   3001234567\n Ciudad:     Barranquilla\n\n "Construyendo software con proposito para el mundo"\n==================================================</code></pre><p><strong>Condiciones:</strong> Usar <code>Write</code> para input, <code>WriteLine</code> para output, variables <code>string</code>, interpolacion <code>$</code>, y al menos un comentario util.</p>' },
+            { title: "Entrega y autoevaluacion", content: '<h2>Evidencia de aprendizaje</h2><ol><li>Carpeta comprimida del proyecto <code>TarjetaPresentacion</code> (sin <code>bin/</code> ni <code>obj/</code>)</li><li>Codigo fuente de <code>Program.cs</code></li><li>Captura de pantalla de la terminal ejecutando el programa</li><li>Explicacion corta del flujo: Entrada, Proceso, Salida</li></ol><h2>Preguntas de autoevaluacion</h2><ol><li>Que es .NET? Explicaselo a un amigo</li><li>Por que C# y .NET no son lo mismo?</li><li>Para que instalamos el SDK?</li><li>Que hace el CLR?</li><li>Que hace <code>dotnet run</code> por debajo?</li><li>Para que sirve el archivo <code>.csproj</code>?</li><li>Diferencia entre <code>Write</code> y <code>WriteLine</code>?</li><li>Que es una variable y por que necesita un tipo?</li><li>Como nos protegemos contra valores nulos?</li><li>Por que usar interpolacion en vez de concatenacion?</li><li>Que significa que C# sea sensible a mayusculas?</li><li>Por que es error correr <code>dotnet run</code> desde la carpeta equivocada?</li></ol>' },
+            { title: "Tarea y preparacion", content: '<h2>Tarea para la siguiente clase</h2><p>Crea <code>investigacion-clase-01.md</code> y responde:</p><ol><li>Que es una variable y que tipos de datos existen?</li><li>Diferencia entre <code>"25"</code> (texto) y <code>25</code> (numero)?</li><li>Que pasa si sumas <code>"10" + "20"</code>?</li><li>Que pasa si sumas <code>10 + 20</code>?</li><li>Que significa "convertir o castear" un dato?</li><li>Que pasa si el usuario escribe letras en un campo numerico?</li></ol><h2>Preparacion para la siguiente clase</h2><p>En esta clase guardamos todo como <code>string</code>. Pero si quisiéramos construir una calculadora o calcular el IVA, el tipo <code>string</code> no nos sirve porque <strong>no puedes hacer operaciones matematicas con textos</strong>.</p><p>En la proxima clase veremos:</p><ul><li>Tipos numericos enteros y decimales (<code>int</code>, <code>double</code>, <code>decimal</code>)</li><li>Valores booleanos (<code>bool</code>)</li><li>Conversion de datos con <code>int.Parse</code>, <code>Convert</code> y <code>int.TryParse</code></li></ul><div class="callout"><strong>Pregunta de reflexion:</strong> Si almacenas el anio actual como <code>"2026"</code> y tu anio de nacimiento como <code>"1996"</code>, como harias para que la computadora los resta matematicamente?</div>' },
+            { title: "Resumen de comandos", content: '<h2>Resumen de comandos</h2><table><tr><th>Accion</th><th>Comando</th></tr><tr><td>Ver version de .NET</td><td><code>dotnet --version</code></td></tr><tr><td>Crear carpeta</td><td><code>mkdir NombreCarpeta</code></td></tr><tr><td>Entrar a carpeta</td><td><code>cd NombreCarpeta</code></td></tr><tr><td>Ver ruta actual</td><td><code>pwd</code></td></tr><tr><td>Crear proyecto de consola</td><td><code>dotnet new console -n Nombre</code></td></tr><tr><td>Compilar</td><td><code>dotnet build</code></td></tr><tr><td>Ejecutar</td><td><code>dotnet run</code></td></tr><tr><td>Abrir en VS Code</td><td><code>code .</code></td></tr></table><h2>Cierre</h2><p>Hoy aprendimos que .NET no es un programa magico de Windows, sino una plataforma potente, multiplataforma y moderna.</p><p>Vimos que C# es nuestro canal de comunicacion con la maquina y que el CLR y el Garbage Collector trabajan por detras para que no tengamos que gestionar la memoria manualmente.</p><p>Pusimos en practica el ciclo universal:</p><div class="diagram">Entrada (ReadLine) &rarr; Proceso (Variables) &rarr; Salida (WriteLine)</div>' },
+            { title: "Cierre", content: '<h2>Resumen de la clase</h2><div class="callout callout--success"><strong>Al finalizar esta clase sabes:</strong></div><ul><li>Que es .NET y su evolucion hasta .NET 8 LTS</li><li>La diferencia entre .NET, C#, VS Code y Visual Studio</li><li>Como funciona el CLR, el Garbage Collector y la compilacion JIT</li><li>Diferencia entre SDK y Runtime</li><li>Los 10 comandos esenciales de la CLI</li><li>Por que usar la terminal en el desarrollo profesional</li><li>Crear un proyecto de consola desde cero</li><li>La estructura de archivos de un proyecto .NET</li><li>Que hace <code>dotnet run</code> por debajo</li><li>Top-level statements en C# moderno</li><li>Sintaxis, case sensitivity y comentarios</li><li><code>Console.WriteLine</code>, <code>Write</code> y <code>ReadLine</code></li><li>Variables de tipo <code>string</code></li><li>Manejo de valores null y el operador <code>??</code></li><li>Concatenacion e interpolacion de cadenas</li><li>El flujo Entrada-Proceso-Salida</li><li>Los 6 errores mas comunes y como leer errores de compilacion</li></ul><p style="margin-top:1.5rem;"><strong>Comandos clave:</strong></p><pre><code><span class="lang-tag">bash</span>dotnet --version\ndotnet new console -n MiApp\ncd MiApp\ndotnet run</code></pre><div class="callout callout--success" style="margin-top:1rem;"><strong>Frase final:</strong> "A programar no se aprende memorizando codigos, sino aprendiendo a entender un problema, rompiendolo en partes pequenitas y explicandole a una maquina como resolverlo paso a paso."</div>' }
+        ];
+
+        var current = 0;
+        var slideEl = document.getElementById('slide');
+        var counterEl = document.getElementById('counter');
+        var tocEl = document.getElementById('toc');
+        var dotsContainer = document.getElementById('dotsContainer');
+        var progressFill = document.getElementById('progressFill');
+        var progressText = document.getElementById('progressText');
+        var breadcrumb = document.getElementById('breadcrumb');
+
+        // Build TOC with sections
+        var lastSection = '';
+        slides.forEach(function(s, i) {
+            var sec = getSection(i);
+            if (sec !== lastSection) {
+                var sectionDiv = document.createElement('div');
+                sectionDiv.className = 'nav-section';
+                sectionDiv.textContent = sec;
+                tocEl.appendChild(sectionDiv);
+                lastSection = sec;
+            }
+            var li = document.createElement('div');
+            li.className = 'nav-item';
+            li.innerHTML = '<span class="nav-num">' + String(i + 1).padStart(2, '0') + '</span>' + s.title;
+            li.onclick = function() { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+        });
+
+        // Build dots
+        slides.forEach(function(s, i) {
+            var dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = function() { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            var num = String(current + 1).padStart(2, '0');
+            counterEl.textContent = num + ' / ' + slides.length;
+            progressText.textContent = (current + 1) + ' / ' + slides.length;
+            progressFill.style.width = ((current + 1) / slides.length * 100) + '%';
+
+            var sec = getSection(current);
+            breadcrumb.innerHTML = '<span>' + sec + '</span> / ' + slides[current].title;
+
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+
+            // Update active states
+            var navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(function(item, i) {
+                item.classList.toggle('active', i === current);
+            });
+            document.querySelectorAll('.dot').forEach(function(d, i) {
+                d.classList.toggle('active', i === current);
+            });
+
+            // Scroll active nav item into view
+            var activeNav = document.querySelector('.nav-item.active');
+            if (activeNav) {
+                activeNav.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+
+            // Scroll slide area to top
+            document.querySelector('.slide-area').scrollTop = 0;
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nextSlide(); }
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevSlide(); }
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

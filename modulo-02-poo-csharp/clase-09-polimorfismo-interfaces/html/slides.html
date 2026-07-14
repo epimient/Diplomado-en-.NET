@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 09 — Polimorfismo e Interfaces</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 09</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>Polimorfismo e Interfaces</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 2 · Programación Orientada a Objetos</p>
+                <h1>Polimorfismo e Interfaces</h1>
+                <p class="subtitle">Domina el polimorfismo y aprende a crear contratos flexibles con interfaces en C#.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 09 · Diplomado Programación con .NET</p>
+                <p><span class="tag">Polimorfismo</span> <span class="tag">Interfaces</span> <span class="tag">IComparable</span> <span class="tag">múltiples interfaces</span></p>`
+            },
+            {
+                title: "¿Qué es polimorfismo?",
+                content: `<h2>Polimorfismo</h2>
+                <p>El <strong>polimorfismo</strong> (muchas formas) permite que un mismo método se comporte de manera diferente según el objeto que lo invoque.</p>
+                <p>Ya vimos una forma de polimorfismo con <code>virtual</code> / <code>override</code>. Ahora profundizaremos.</p>
+                <ul>
+                    <li><strong>Polimorfismo en tiempo de compilación</strong> — sobrecarga de métodos (mismo nombre, diferentes parámetros)</li>
+                    <li><strong>Polimorfismo en tiempo de ejecución</strong> — override + interfaces</li>
+                </ul>
+                <div class="callout callout--info"><strong>💡 Polimorfismo = "un interfaz, múltiples implementaciones".</strong></div>`
+            },
+            {
+                title: "Polimorfismo con herencia",
+                content: `<h2>Polimorfismo con clases</h2>
+                <pre><code>public abstract class Figura
+{
+    public abstract double CalcularArea();
+    public abstract void Dibujar();
+}
+
+public class Circulo : Figura
+{
+    public double Radio { get; set; }
+    public Circulo(double radio) { Radio = radio; }
+    
+    public override double CalcularArea() => Math.PI * Radio * Radio;
+    public override void Dibujar() => Console.WriteLine("⭕ Círculo");
+}
+
+public class Rectangulo : Figura
+{
+    public double Ancho { get; set; }
+    public double Alto { get; set; }
+    
+    public Rectangulo(double ancho, double alto)
+    {
+        Ancho = ancho; Alto = alto;
+    }
+    
+    public override double CalcularArea() => Ancho * Alto;
+    public override void Dibujar() => Console.WriteLine("▬ Rectángulo");
+}
+
+// Uso polimórfico:
+Figura[] figuras = new Figura[]
+{
+    new Circulo(5),
+    new Rectangulo(4, 6)
+};
+
+foreach (Figura f in figuras)
+{
+    f.Dibujar();
+    Console.WriteLine($"Área: {f.CalcularArea():F2}\n");
+}</code></pre>`
+            },
+            {
+                title: "¿Qué es una interfaz?",
+                content: `<h2>Interfaces</h2>
+                <p>Una <strong>interfaz</strong> es un <strong>contrato</strong> que define qué métodos y propiedades debe tener una clase, sin implementarlos.</p>
+                <pre><code>// Definición de interfaz (contrato)
+public interface IVolador
+{
+    void Volar();
+    void Aterrizar();
+}
+
+// Implementación: la clase CUMPLE el contrato
+public class Pajaro : IVolador
+{
+    public void Volar()
+    {
+        Console.WriteLine("El pájaro vuela batiendo alas...");
+    }
+    
+    public void Aterrizar()
+    {
+        Console.WriteLine("El pájaro aterriza en una rama.");
+    }
+}
+
+public class Avion : IVolador
+{
+    public void Volar()
+    {
+        Console.WriteLine("El avión vuela con motores...");
+    }
+    
+    public void Aterrizar()
+    {
+        Console.WriteLine("El avión aterriza en la pista.");
+    }
+}</code></pre>`
+            },
+            {
+                title: "Interfaz vs Clase abstracta",
+                content: `<h2>Interfaz vs Clase abstracta</h2>
+                <div class="comparison">
+                    <div>
+                        <h4>Interfaz</h4>
+                        <p>Solo declaraciones (métodos, propiedades, eventos). Sin implementación.</p>
+                        <code>interface IVolador {<br>    void Volar();<br>}</code>
+                        <p>Una clase puede implementar <strong>varias</strong> interfaces.</p>
+                    </div>
+                    <div>
+                        <h4>Clase abstracta</h4>
+                        <p>Puede tener implementación parcial. Puede tener campos y constructores.</p>
+                        <code>abstract class Animal {<br>    public void Dormir() {...}<br>    abstract void HacerSonido();<br>}</code>
+                        <p>Una clase solo puede <strong>heredar de una</strong> clase abstracta.</p>
+                    </div>
+                </div>
+                <table>
+                    <tr><th>Característica</th><th>Interfaz</th><th>Clase abstracta</th></tr>
+                    <tr><td>Implementación</td><td>No (solo declaración)</td><td>Sí (puede tener código)</td></tr>
+                    <tr><td>Campos</td><td>No</td><td>Sí</td></tr>
+                    <tr><td>Constructores</td><td>No</td><td>Sí</td></tr>
+                    <tr><td>Herencia múltiple</td><td>Sí (varias interfaces)</td><td>No (solo una clase)</td></tr>
+                    <tr><td>Uso típico</td><td>Contrato de capacidades</td><td>Base común con implementación</td></tr>
+                </table>`
+            },
+            {
+                title: "Interfaces en la práctica",
+                content: `<h2>Implementar interfaces</h2>
+                <pre><code>public interface IImprimible
+{
+    void Imprimir();
+}
+
+public interface IGuardable
+{
+    void Guardar(string archivo);
+    void Cargar(string archivo);
+}
+
+public class Documento : IImprimible, IGuardable
+{
+    public string Contenido { get; set; }
+    
+    public Documento(string contenido)
+    {
+        Contenido = contenido;
+    }
+    
+    public void Imprimir()
+    {
+        Console.WriteLine($"Imprimiendo: {Contenido}");
+    }
+    
+    public void Guardar(string archivo)
+    {
+        File.WriteAllText(archivo, Contenido);
+        Console.WriteLine($"Guardado en {archivo}");
+    }
+    
+    public void Cargar(string archivo)
+    {
+        Contenido = File.ReadAllText(archivo);
+        Console.WriteLine($"Cargado desde {archivo}");
+    }
+}</code></pre>
+                <div class="callout callout--success"><strong>💡 Una clase puede implementar múltiples interfaces separadas por coma.</strong></div>`
+            },
+            {
+                title: "Interfaces como parámetros",
+                content: `<h2>Polimorfismo con interfaces</h2>
+                <p>Podemos usar interfaces como tipo de parámetro para aceptar cualquier clase que la implemente:</p>
+                <pre><code>public interface IEncendible
+{
+    void Encender();
+    void Apagar();
+}
+
+public class Lampara : IEncendible
+{
+    public void Encender() => Console.WriteLine("💡 Luz encendida");
+    public void Apagar() => Console.WriteLine("💡 Luz apagada");
+}
+
+public class Computadora : IEncendible
+{
+    public void Encender() => Console.WriteLine("🖥️ PC encendida");
+    public void Apagar() => Console.WriteLine("🖥️ PC apagada");
+}
+
+// Método que acepta cualquier cosa encendible
+void ProbarEncendido(IEncendible dispositivo)
+{
+    Console.WriteLine("Probando dispositivo...");
+    dispositivo.Encender();
+    Thread.Sleep(500);
+    dispositivo.Apagar();
+}
+
+// Uso:
+ProbarEncendido(new Lampara());
+ProbarEncendido(new Computadora());</code></pre>`
+            },
+            {
+                title: "Interfaces del framework",
+                content: `<h2>Interfaces comunes en .NET</h2>
+                <table>
+                    <tr><th>Interfaz</th><th>Propósito</th><th>Método clave</th></tr>
+                    <tr><td><code>IComparable</code></td><td>Comparar objetos (ordenar)</td><td><code>CompareTo()</code></td></tr>
+                    <tr><td><code>IEnumerable</code></td><td>Recorrer colecciones (foreach)</td><td><code>GetEnumerator()</code></td></tr>
+                    <tr><td><code>IDisposable</code></td><td>Liberar recursos</td><td><code>Dispose()</code></td></tr>
+                    <tr><td><code>ICloneable</code></td><td>Clonar objetos</td><td><code>Clone()</code></td></tr>
+                    <tr><td><code>IComparer</code></td><td>Comparación personalizada</td><td><code>Compare()</code></td></tr>
+                </table>
+                <h3>Ejemplo: IComparable</h3>
+                <pre><code>public class Persona : IComparable<Persona>
+{
+    public string Nombre { get; set; }
+    public int Edad { get; set; }
+    
+    public int CompareTo(Persona? otra)
+    {
+        if (otra == null) return 1;
+        return this.Edad.CompareTo(otra.Edad);
+    }
+}
+
+// Uso:
+List<Persona> personas = new List<Persona>
+{
+    new Persona { Nombre = "Ana", Edad = 25 },
+    new Persona { Nombre = "Luis", Edad = 30 },
+    new Persona { Nombre = "Eva", Edad = 22 }
+};
+
+personas.Sort();  // Ordena por edad gracias a IComparable</code></pre>`
+            },
+            {
+                title: "Interfaces (C# 8+)",
+                content: `<h2>Interfaces con implementación por defecto (C# 8+)</h2>
+                <p>Desde C# 8, las interfaces pueden tener implementación por defecto:</p>
+                <pre><code>public interface ILogger
+{
+    void Log(string mensaje);
+    
+    // Implementación por defecto (C# 8+)
+    void LogInfo(string mensaje)
+    {
+        Log($"[INFO] {mensaje}");
+    }
+    
+    void LogError(string mensaje)
+    {
+        Log($"[ERROR] {mensaje}");
+    }
+}
+
+public class ConsolaLogger : ILogger
+{
+    public void Log(string mensaje)
+    {
+        Console.WriteLine($"{DateTime.Now:HH:mm:ss} {mensaje}");
+    }
+    // LogInfo y LogError vienen por defecto
+}
+
+// Uso:
+ILogger logger = new ConsolaLogger();
+logger.LogInfo("Iniciando aplicación...");
+logger.LogError("Error al conectar");</code></pre>
+                <div class="callout callout--warning"><strong>⚠️ La implementación por defecto solo se accede si usas el tipo interfaz (<code>ILogger log</code>), no el tipo concreto.</strong></div>`
+            },
+            {
+                title: "Buenas prácticas",
+                content: `<h2>Buenas prácticas con interfaces</h2>
+                <table>
+                    <tr><th>Práctica</th><th>✅ Correcto</th><th>❌ Incorrecto</th></tr>
+                    <tr><td>Nombres con prefijo I</td><td><code>IServicioEmail</code></td><td><code>ServicioEmail</code></td></tr>
+                    <tr><td>Interfaces pequeñas</td><td>1-3 métodos</td><td>Interfaz con 15 métodos</td></tr>
+                    <tr><td>Usar interfaz como tipo</td><td><code>IEnumerable<T></code></td><td><code>List<T></code> explícito</td></tr>
+                    <tr><td>Programar contra interfaces</td><td><code>void Procesar(IRepositorio r)</code></td><td><code>void Procesar(SqlRepositorio r)</code></td></tr>
+                    <tr><td>Separar responsabilidades</td><td>Una interfaz por capacidad</td><td>Interfaz que mezcla guardar + enviar email</td></tr>
+                </table>
+                <pre><code>// ✅ Interfaces enfocadas
+interface IRepositorio<T>
+{
+    T Obtener(int id);
+    void Guardar(T entidad);
+    void Eliminar(int id);
+}
+
+interface INotificador
+{
+    void Enviar(string destino, string mensaje);
+}</code></pre>`
+            },
+            {
+                title: "Ejemplo completo",
+                content: `<h2>Ejemplo completo: Sistema de notificaciones</h2>
+                <pre><code>public interface INotificable
+{
+    void Enviar(string mensaje);
+}
+
+public class EmailNotificador : INotificable
+{
+    public string Email { get; set; }
+    
+    public EmailNotificador(string email) => Email = email;
+    
+    public void Enviar(string mensaje)
+    {
+        Console.WriteLine($"[EMAIL] Para {Email}: {mensaje}");
+    }
+}
+
+public class SmsNotificador : INotificable
+{
+    public string Telefono { get; set; }
+    
+    public SmsNotificador(string telefono) => Telefono = telefono;
+    
+    public void Enviar(string mensaje)
+    {
+        Console.WriteLine($"[SMS] Para {Telefono}: {mensaje}");
+    }
+}
+
+public class PushNotificador : INotificable
+{
+    public string DispositivoId { get; set; }
+    
+    public PushNotificador(string id) => DispositivoId = id;
+    
+    public void Enviar(string mensaje)
+    {
+        Console.WriteLine($"[PUSH] Para {DispositivoId}: {mensaje}");
+    }
+}</code></pre>`
+            },
+            {
+                title: "Sistema de notificaciones (uso)",
+                content: `<h2>Usando el sistema polimórfico</h2>
+                <pre><code>class SistemaNotificaciones
+{
+    private List<INotificable> canales;
+
+    public SistemaNotificaciones()
+    {
+        canales = new List<INotificable>();
+    }
+
+    public void AgregarCanal(INotificable canal)
+    {
+        canales.Add(canal);
+    }
+
+    public void NotificarTodos(string mensaje)
+    {
+        Console.WriteLine($"\n=== Notificando: {mensaje} ===\n");
+        foreach (var canal in canales)
+        {
+            canal.Enviar(mensaje);
+        }
+        Console.WriteLine("=== Notificación completada ===\n");
+    }
+}
+
+// Programa principal
+SistemaNotificaciones sistema = new SistemaNotificaciones();
+sistema.AgregarCanal(new EmailNotificador("ana@email.com"));
+sistema.AgregarCanal(new EmailNotificador("luis@email.com"));
+sistema.AgregarCanal(new SmsNotificador("+52123456789"));
+sistema.AgregarCanal(new PushNotificador("Device-ABC-123"));
+sistema.NotificarTodos("¡Clase de POO cancelada por hoy!");</code></pre>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Qué es el polimorfismo y cómo implementarlo</li>
+                    <li>Crear interfaces con métodos y propiedades</li>
+                    <li>Implementar interfaces en clases</li>
+                    <li>Trabajar con múltiples interfaces</li>
+                    <li>Diferencia entre interfaz y clase abstracta</li>
+                    <li>Usar interfaces como parámetros polimórficos</li>
+                    <li>Interfaces del framework: <code>IComparable</code>, <code>IEnumerable</code></li>
+                </ul>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡Las interfaces desbloquean la flexibilidad total!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

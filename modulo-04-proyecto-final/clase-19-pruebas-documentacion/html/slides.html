@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 19 — Pruebas y Documentación</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 19</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>Pruebas y Documentación</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 4 · Proyecto Final Integrador</p>
+                <h1>Pruebas y Documentación</h1>
+                <p class="subtitle">Aprende a probar tu API con Swagger, Thunder Client y curl, y documenta tu proyecto con un README.md profesional.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 19 · Diplomado Programación con .NET</p>
+                <p><span class="tag">Swagger</span> <span class="tag">Thunder Client</span> <span class="tag">curl</span> <span class="tag">README</span> <span class="tag">Demo</span></p>`
+            },
+            {
+                title: "Probar con Swagger UI",
+                content: `<h2>Prueba interactiva desde Swagger</h2>
+                <p>Swagger UI es la forma más rápida de probar tus endpoints.</p>
+                <pre><code># Ejecuta tu API
+dotnet run
+
+# Abre en el navegador
+# http://localhost:5000  (o https://localhost:5001)
+# Swagger se abrirá automáticamente si configuraste RoutePrefix vacío</code></pre>
+                <p>Pasos para probar en Swagger:</p>
+                <table>
+                    <tr><th>Paso</th><th>Acción</th></tr>
+                    <tr><td>1</td><td>Abre Swagger UI en el navegador</td></tr>
+                    <tr><td>2</td><td>Selecciona el endpoint que quieres probar</td></tr>
+                    <tr><td>3</td><td>Haz clic en <strong>Try it out</strong></td></tr>
+                    <tr><td>4</td><td>Completa los parámetros o el body JSON</td></tr>
+                    <tr><td>5</td><td>Haz clic en <strong>Execute</strong></td></tr>
+                    <tr><td>6</td><td>Revisa el código HTTP de respuesta y el body</td></tr>
+                </table>
+                <div class="callout callout--success"><strong>✅ Verifica:</strong> Cada endpoint debe devolver el código HTTP correcto. Los GET deben devolver datos. Los POST deben devolver 201 Created.</div>
+                <div class="callout callout--warning"><strong>⚠️ Importante:</strong> Si Swagger no abre, verifica que tienes <code>AddSwaggerGen</code> y <code>UseSwagger</code> en Program.cs.</div>`
+            },
+            {
+                title: "Thunder Client",
+                content: `<h2>Pruebas con Thunder Client (VS Code)</h2>
+                <p>Thunder Client es una extensión de VS Code para probar APIs. No requiere salir del editor.</p>
+                <pre><code>// Instalar: Extensión "Thunder Client" en VS Code
+// Luego:
+
+1. Abre Thunder Client (icono en la barra lateral)
+2. Crea una nueva Request
+3. Configura:
+
+   Método: GET
+   URL: http://localhost:5000/api/libros
+
+   — o —
+
+   Método: POST
+   URL: http://localhost:5000/api/libros
+   Body: JSON
+   {
+     "titulo": "Cien años de soledad",
+     "isbn": "978-84-376-0494-7",
+     "anioPublicacion": 1967,
+     "autorIds": [1, 2]
+   }
+
+4. Haz clic en Send
+5. Revisa la respuesta (status code, body, headers)</code></pre>
+                <div class="callout"><strong>💡 Ventaja:</strong> Thunder Client guarda el historial de peticiones. Puedes crear una colección para probar todos los endpoints sistemáticamente.</div>
+                <p>Colección de pruebas sugerida:</p>
+                <table>
+                    <tr><th>Orden</th><th>Prueba</th><th>Esperado</th></tr>
+                    <tr><td>1</td><td>GET /api/libros</td><td>200 + lista (vacía al inicio)</td></tr>
+                    <tr><td>2</td><td>POST /api/libros</td><td>201 + libro creado</td></tr>
+                    <tr><td>3</td><td>GET /api/libros/1</td><td>200 + libro</td></tr>
+                    <tr><td>4</td><td>PUT /api/libros/1</td><td>204 No Content</td></tr>
+                    <tr><td>5</td><td>GET /api/libros/999</td><td>404 Not Found</td></tr>
+                    <tr><td>6</td><td>DELETE /api/libros/1</td><td>204 No Content</td></tr>
+                </table>`
+            },
+            {
+                title: "Pruebas con curl",
+                content: `<h2>Pruebas desde la terminal con curl</h2>
+                <p>Curl es una herramienta de línea de comandos para hacer peticiones HTTP. Útil para scripts y automatización.</p>
+                <pre><code># GET - Obtener todos los libros
+curl http://localhost:5000/api/libros
+
+# GET - Obtener libro por ID
+curl http://localhost:5000/api/libros/1
+
+# GET con formato JSON legible
+curl http://localhost:5000/api/libros | jq
+
+# POST - Crear un libro
+curl -X POST http://localhost:5000/api/libros \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titulo": "El principito",
+    "isbn": "978-84-376-0494-7",
+    "anioPublicacion": 1943,
+    "autorIds": [1]
+  }'
+
+# PUT - Actualizar un libro
+curl -X PUT http://localhost:5000/api/libros/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titulo": "El principito (edición especial)",
+    "isbn": "978-84-376-0494-7",
+    "anioPublicacion": 1943,
+    "disponible": true,
+    "autorIds": [1]
+  }'
+
+# DELETE - Eliminar un libro
+curl -X DELETE http://localhost:5000/api/libros/1
+
+# Ver solo el código de respuesta
+curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/api/libros</code></pre>
+                <div class="callout callout--success"><strong>💡 Tip:</strong> Usa <code>curl | jq</code> para formatear el JSON de respuesta. Instala <code>jq</code> con <code>sudo apt install jq</code>.</div>`
+            },
+            {
+                title: "Documentar endpoints",
+                content: `<h2>Documenta todos los endpoints de tu API</h2>
+                <p>Crea una tabla con todos los endpoints de tu proyecto. Esto es parte de la documentación entregable.</p>
+                <table>
+                    <tr><th>Método</th><th>Endpoint</th><th>Descripción</th><th>Body (ejemplo)</th><th>Respuesta</th></tr>
+                    <tr><td>GET</td><td><code>/api/libros</code></td><td>Listar todos los libros</td><td>—</td><td>200 + array de libros</td></tr>
+                    <tr><td>GET</td><td><code>/api/libros/{id}</code></td><td>Obtener libro por ID</td><td>—</td><td>200 + libro / 404</td></tr>
+                    <tr><td>POST</td><td><code>/api/libros</code></td><td>Crear un libro</td><td><code>{titulo, isbn, anio, autorIds}</code></td><td>201 + libro</td></tr>
+                    <tr><td>PUT</td><td><code>/api/libros/{id}</code></td><td>Actualizar un libro</td><td><code>{titulo, isbn, anio, autorIds}</code></td><td>204 / 404</td></tr>
+                    <tr><td>DELETE</td><td><code>/api/libros/{id}</code></td><td>Eliminar un libro</td><td>—</td><td>204 / 404</td></tr>
+                    <tr><td>GET</td><td><code>/api/autores</code></td><td>Listar todos los autores</td><td>—</td><td>200 + array de autores</td></tr>
+                    <tr><td>POST</td><td><code>/api/autores</code></td><td>Crear un autor</td><td><code>{nombre, nacionalidad, fechaNac}</code></td><td>201 + autor</td></tr>
+                    <tr><td>PUT</td><td><code>/api/autores/{id}</code></td><td>Actualizar un autor</td><td><code>{nombre, nacionalidad}</code></td><td>204 / 404</td></tr>
+                    <tr><td>DELETE</td><td><code>/api/autores/{id}</code></td><td>Eliminar un autor</td><td>—</td><td>204 / 404</td></tr>
+                    <tr><td>GET</td><td><code>/api/prestamos</code></td><td>Listar préstamos activos</td><td>—</td><td>200 + array</td></tr>
+                    <tr><td>POST</td><td><code>/api/prestamos</code></td><td>Registrar préstamo</td><td><code>{libroId, nombreUsuario}</code></td><td>201 + préstamo</td></tr>
+                </table>
+                <div class="callout callout--success"><strong>💡 Esta tabla</strong> va en el README.md del proyecto.</div>`
+            },
+            {
+                title: "README.md profesional",
+                content: `<h2>Estructura del README.md</h2>
+                <p>El README es la puerta de entrada a tu proyecto. Debe ser claro, completo y profesional.</p>
+                <pre><code># Sistema de Biblioteca API
+
+API REST para la gestión de una biblioteca. 
+Proyecto final del Diplomado Programación con .NET.
+
+## Tecnologías
+
+- .NET 8 LTS
+- ASP.NET Core Web API
+- Entity Framework Core
+- SQLite
+- Swagger / OpenAPI
+
+## Instalación
+
+\`\`\`bash
+git clone https://github.com/tu-usuario/tu-proyecto.git
+cd tu-proyecto
+dotnet restore
+dotnet ef database update
+dotnet run
+\`\`\`
+
+## Endpoints
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | /api/libros | Listar libros |
+| POST | /api/libros | Crear libro |
+| ...
+
+## Capturas
+
+![Swagger UI](screenshots/swagger.png)
+
+## Autores
+
+- Nombre 1 — rol
+- Nombre 2 — rol
+
+## Estado del proyecto
+
+Completado ✅</code></pre>
+                <div class="callout"><strong>💡 Incluye:</strong> nombre del proyecto, tecnologías, instalación, ejecución, endpoints, capturas, autores y estado.</div>`
+            },
+            {
+                title: "Capturas de pantalla",
+                content: `<h2>Cómo tomar capturas de prueba</h2>
+                <p>Las capturas de pantalla son evidencia visual del funcionamiento de tu API.</p>
+                <table>
+                    <tr><th>#</th><th>Captura requerida</th><th>Herramienta</th></tr>
+                    <tr><td>1</td><td>Swagger UI mostrando todos los endpoints</td><td>Captura de pantalla del navegador</td></tr>
+                    <tr><td>2</td><td>GET /api/libros con respuesta 200</td><td>Swagger UI o Thunder Client</td></tr>
+                    <tr><td>3</td><td>POST /api/libros con body y respuesta 201</td><td>Swagger UI o Thunder Client</td></tr>
+                    <tr><td>4</td><td>PUT /api/libros/1 con respuesta 204</td><td>Swagger UI o Thunder Client</td></tr>
+                    <tr><td>5</td><td>DELETE /api/libros/1 con respuesta 204</td><td>Swagger UI o Thunder Client</td></tr>
+                    <tr><td>6</td><td>GET /api/libros/999 con respuesta 404</td><td>Swagger UI o Thunder Client</td></tr>
+                </table>
+                <p>Recomendaciones para las capturas:</p>
+                <ul>
+                    <li>Usa formato PNG o JPG con buena resolución</li>
+                    <li>Incluye la URL, el método HTTP y el código de respuesta visible</li>
+                    <li>Organiza las capturas en una carpeta <code>screenshots/</code></li>
+                    <li>Nombra los archivos descriptivamente: <code>get-libros-200.png</code></li>
+                    <li>Referencia las capturas en el README.md</li>
+                </ul>
+                <div class="callout callout--warning"><strong>⚠️ Importante:</strong> Las capturas deben ser legibles. No uses capturas borrosas o recortadas.</div>`
+            },
+            {
+                title: "Video demo",
+                content: `<h2>Video corto de funcionamiento</h2>
+                <p>El video demo muestra tu proyecto funcionando en tiempo real. Debe ser corto y conciso.</p>
+                <p>Estructura recomendada del video (2-3 minutos máximo):</p>
+                <table>
+                    <tr><th>Sección</th><th>Duración</th><th>Qué mostrar</th></tr>
+                    <tr><td>Introducción</td><td>15 seg</td><td>Nombre del proyecto, integrantes, qué hace</td></tr>
+                    <tr><td>Ejecución</td><td>15 seg</td><td><code>dotnet run</code> en la terminal</td></tr>
+                    <tr><td>Swagger UI</td><td>30 seg</td><td>Mostrar todos los endpoints cargados</td></tr>
+                    <tr><td>CRUD en vivo</td><td>60 seg</td><td>Crear, listar, actualizar y eliminar un registro</td></tr>
+                    <tr><td>Casos edge</td><td>20 seg</td><td>Mostrar 404, validaciones, errores</td></tr>
+                    <tr><td>Cierre</td><td>10 seg</td><td>Código en GitHub, agradecimientos</td></tr>
+                </table>
+                <div class="callout callout--success"><strong>💡 Recomendaciones:</strong></div>
+                <ul>
+                    <li>Graba con OBS Studio o la grabadora de pantalla de tu SO</li>
+                    <li>Sube el video a YouTube (no listado) o Google Drive</li>
+                    <li>Incluye el enlace en el README.md</li>
+                    <li>No edites el video: grábalo en una sola toma</li>
+                </ul>`
+            },
+            {
+                title: "Checklist de entrega",
+                content: `<h2>Checklist final — Clase 19</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase debes tener:</strong></div>
+                <table>
+                    <tr><th>#</th><th>Item</th><th>Responsable</th></tr>
+                    <tr><td>1</td><td>API funcional con dotnet run</td><td>Backend 1</td></tr>
+                    <tr><td>2</td><td>GET, POST, PUT, DELETE probados en Swagger</td><td>Backend 2</td></tr>
+                    <tr><td>3</td><td>Todos los endpoints documentados en tabla</td><td>Documentador</td></tr>
+                    <tr><td>4</td><td>README.md completo y profesional</td><td>Documentador</td></tr>
+                    <tr><td>5</td><td>Carpeta screenshots/ con capturas</td><td>Documentador</td></tr>
+                    <tr><td>6</td><td>Video demo grabado (2-3 min)</td><td>Todo el equipo</td></tr>
+                    <tr><td>7</td><td>Enlace al video en README.md</td><td>Documentador</td></tr>
+                    <tr><td>8</td><td>Código subido a GitHub</td><td>Líder técnico</td></tr>
+                    <tr><td>9</td><td>Pruebas con curl documentadas</td><td>Backend 2</td></tr>
+                    <tr><td>10</td><td>Manejo de errores verificado (400, 404)</td><td>Backend 1</td></tr>
+                </table>
+                <div class="callout callout--error"><strong>⏰ Recuerda:</strong> Mañana es la presentación final. Todo debe estar listo.</div>`
+            },
+            {
+                title: "Buenas prácticas para pruebas",
+                content: `<h2>Buenas prácticas de pruebas y documentación</h2>
+                <table>
+                    <tr><th>Práctica</th><th>✅ Correcto</th><th>❌ Incorrecto</th></tr>
+                    <tr><td>Probar en orden CRUD</td><td>Crear → Listar → Actualizar → Eliminar</td><td>Probar DELETE antes de crear</td></tr>
+                    <tr><td>Probar casos edge</td><td>404 con ID inexistente, 400 con datos inválidos</td><td>Solo probar el caso feliz</td></tr>
+                    <tr><td>Documentar en README</td><td>README completo con instalación, endpoints, capturas</td><td>README vacío o solo el nombre</td></tr>
+                    <tr><td>Organizar screenshots</td><td>Carpeta screenshots/ con nombres claros</td><td>Capturas dispersas sin contexto</td></tr>
+                    <tr><td>Video demo</td><td>Video corto, bien iluminado, con audio claro</td><td>Video largo sin editar o sin audio</td></tr>
+                    <tr><td>Mantener Swagger visible</td><td>Swagger como página principal de la API</td><td>Swagger oculto o sin configurar</td></tr>
+                    <tr><td>Actualizar README</td><td>README actualizado hasta el último commit</td><td>README desactualizado</td></tr>
+                </table>`
+            },
+            {
+                title: "Preparación para la presentación",
+                content: `<h2>Prepara tu presentación final</h2>
+                <p>Mañana es la Clase 20 — Presentación Final. Usa el tiempo de esta clase para prepararte:</p>
+                <pre><code>// Lista de verificación pre-presentación
+
+1. ¿La API compila sin errores?
+   dotnet build --no-restore
+
+2. ¿La base de datos tiene datos?
+   dotnet ef database update
+   dotnet run  & probar GET
+
+3. ¿Swagger abre correctamente?
+   Abrir http://localhost:5000
+
+4. ¿El README.md está completo?
+   Revisar: título, tecnologías, instalación,
+   endpoints, capturas, autores, enlace video
+
+5. ¿Las capturas están en screenshots/?
+   ls screenshots/
+
+6. ¿El video demo está grabado?
+   Verificar duración (2-3 min)
+
+7. ¿El repositorio está actualizado?
+   git status
+   git push
+
+8. ¿Cada integrante sabe qué va a decir?
+   Ensayar la presentación (5 min cada uno)
+   Demo en vivo (3 min)</code></pre>
+                <div class="callout callout--success"><strong>💡 Consejo:</strong> Duerme bien y llega temprano. La presentación es el cierre de tu trabajo de 4 semanas.</div>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Probar endpoints desde Swagger UI</li>
+                    <li>Usar Thunder Client para pruebas en VS Code</li>
+                    <li>Probar la API con curl desde la terminal</li>
+                    <li>Documentar todos los endpoints en una tabla</li>
+                    <li>Escribir un README.md profesional</li>
+                    <li>Tomar capturas de pantalla de las pruebas</li>
+                    <li>Grabar un video demo de funcionamiento</li>
+                    <li>Preparar todo para la presentación final</li>
+                </ul>
+                <div class="callout callout--success"><strong>📌 Próxima clase:</strong> Clase 20 — Presentación Final. ¡El gran cierre del diplomado!</div>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡Todo listo para la presentación!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

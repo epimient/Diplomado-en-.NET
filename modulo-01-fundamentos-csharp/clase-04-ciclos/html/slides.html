@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 04 — Ciclos</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 04</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>Ciclos (for, while, do-while, foreach)</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 1 · Fundamentos de C# y .NET</p>
+                <h1>Ciclos en C#</h1>
+                <p class="subtitle">Aprende a repetir bloques de código con for, while, do-while y foreach. Domina las estructuras de iteración.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 04 · Diplomado Programación con .NET</p>
+                <p><span class="tag">for</span> <span class="tag">while</span> <span class="tag">do-while</span> <span class="tag">foreach</span> <span class="tag">Bucles</span></p>`
+            },
+            {
+                title: "¿Qué es un ciclo?",
+                content: `<h2>¿Qué es un ciclo?</h2>
+                <p>Un <strong>ciclo</strong> (o bucle) permite ejecutar un bloque de código <strong>múltiples veces</strong> mientras se cumpla una condición.</p>
+                <p>Piensa en un ciclo como una lavadora:</p>
+                <ul>
+                    <li>Se repite un conjunto de pasos (llenar, lavar, enjuagar, centrifugar)</li>
+                    <li>Termina cuando se cumple una condición (el programa termina)</li>
+                    <li>Podemos controlar cuántas veces se repite</li>
+                </ul>
+                <p>En C# tenemos 4 tipos de ciclos:</p>
+                <table>
+                    <tr><th>Ciclo</th><th>Cuándo usarlo</th></tr>
+                    <tr><td><code>for</code></td><td>Cuando sabemos exactamente cuántas veces iterar</td></tr>
+                    <tr><td><code>while</code></td><td>Cuando la repetición depende de una condición</td></tr>
+                    <tr><td><code>do-while</code></td><td>Cuando necesitamos ejecutar al menos una vez</td></tr>
+                    <tr><td><code>foreach</code></td><td>Para recorrer colecciones (arrays, listas)</td></tr>
+                </table>`
+            },
+            {
+                title: "Ciclo for",
+                content: `<h2>Ciclo for</h2>
+                <p>Ideal cuando <strong>sabemos de antemano</strong> cuántas repeticiones necesitamos.</p>
+                <pre><code>for (inicialización; condición; actualización)
+{
+    // Código a repetir
+}</code></pre>
+                <h3>Ejemplo: contar del 1 al 5</h3>
+                <pre><code>for (int i = 1; i <= 5; i++)
+{
+    Console.WriteLine($"Iteración {i}");
+}
+// Salida:
+// Iteración 1
+// Iteración 2
+// Iteración 3
+// Iteración 4
+// Iteración 5</code></pre>
+                <table>
+                    <tr><th>Parte</th><th>Qué hace</th><th>Ejemplo</th></tr>
+                    <tr><td>Inicialización</td><td>Se ejecuta una vez al inicio</td><td><code>int i = 1</code></td></tr>
+                    <tr><td>Condición</td><td>Se evalúa antes de cada iteración</td><td><code>i <= 5</code></td></tr>
+                    <tr><td>Actualización</td><td>Se ejecuta al final de cada iteración</td><td><code>i++</code></td></tr>
+                </table>`
+            },
+            {
+                title: "For: ejemplos avanzados",
+                content: `<h2>For: variantes útiles</h2>
+                <pre><code>// Decremento: contar hacia atrás
+for (int i = 10; i >= 1; i--)
+{
+    Console.Write($"{i} ");  // 10 9 8 7 6 5 4 3 2 1
+}
+
+Console.WriteLine();
+
+// Saltos: números pares del 2 al 20
+for (int i = 2; i <= 20; i += 2)
+{
+    Console.Write($"{i} ");  // 2 4 6 8 10 12 14 16 18 20
+}
+
+Console.WriteLine();
+
+// Suma acumulada
+int suma = 0;
+for (int i = 1; i <= 100; i++)
+{
+    suma += i;
+}
+Console.WriteLine($"Suma del 1 al 100: {suma}");  // 5050
+
+// Tabla de multiplicar
+int numero = 7;
+for (int i = 1; i <= 10; i++)
+{
+    Console.WriteLine($"{numero} x {i} = {numero * i}");
+}</code></pre>`
+            },
+            {
+                title: "Ciclo while",
+                content: `<h2>Ciclo while</h2>
+                <p>Repite mientras una condición sea <code>true</code>. <strong>Evalúa la condición antes</strong> de cada iteración.</p>
+                <pre><code>while (condición)
+{
+    // Código a repetir
+}</code></pre>
+                <h3>Ejemplo: menú interactivo</h3>
+                <pre><code>string opcion = "";
+while (opcion != "3")
+{
+    Console.WriteLine("\n=== MENÚ ===");
+    Console.WriteLine("1. Saludar");
+    Console.WriteLine("2. Ver hora");
+    Console.WriteLine("3. Salir");
+    Console.Write("Elige: ");
+    opcion = Console.ReadLine();
+
+    if (opcion == "1")
+        Console.WriteLine("¡Hola!");
+    else if (opcion == "2")
+        Console.WriteLine($"Hora: {DateTime.Now:HH:mm:ss}");
+}
+
+Console.WriteLine("¡Hasta luego!");</code></pre>
+                <div class="callout callout--warning"><strong>⚠️ ¡Cuidado con los ciclos infinitos!</strong> Si la condición nunca se vuelve false, el ciclo nunca termina.</div>`
+            },
+            {
+                title: "Ciclo do-while",
+                content: `<h2>Ciclo do-while</h2>
+                <p>Similar a <code>while</code>, pero <strong>garantiza al menos una ejecución</strong> (evalúa la condición al final).</p>
+                <pre><code>do
+{
+    // Código a repetir (se ejecuta al menos una vez)
+} while (condición);</code></pre>
+                <h3>Ejemplo: validar entrada del usuario</h3>
+                <pre><code>int edad;
+do
+{
+    Console.Write("Ingresa tu edad (0-120): ");
+    edad = int.Parse(Console.ReadLine());
+
+    if (edad < 0 || edad > 120)
+        Console.WriteLine("Edad inválida. Intenta de nuevo.");
+} while (edad < 0 || edad > 120);
+
+Console.WriteLine($"Edad registrada: {edad} años");</code></pre>
+                <div class="comparison">
+                    <div>
+                        <h4>while</h4>
+                        <p>Puede ejecutarse 0 veces si la condición es false.</p>
+                    </div>
+                    <div>
+                        <h4>do-while</h4>
+                        <p>Siempre se ejecuta <strong>al menos 1 vez</strong>.</p>
+                    </div>
+                </div>`
+            },
+            {
+                title: "Ciclo foreach",
+                content: `<h2>Ciclo foreach</h2>
+                <p>Ideal para <strong>recorrer colecciones</strong> (arrays, listas, strings). No necesitas índice.</p>
+                <pre><code>foreach (tipo variable in colección)
+{
+    // Usar 'variable' en cada iteración
+}</code></pre>
+                <h3>Ejemplos</h3>
+                <pre><code>// Recorrer un array
+string[] frutas = { "Manzana", "Banana", "Cereza", "Durazno" };
+foreach (string fruta in frutas)
+{
+    Console.WriteLine($"Fruta: {fruta}");
+}
+
+// Recorrer un string (carácter por carácter)
+string mensaje = "Hola";
+foreach (char letra in mensaje)
+{
+    Console.WriteLine($"  '{letra}' => código ASCII: {(int)letra}");
+}
+
+// Recorrer números
+int[] numeros = { 10, 20, 30, 40, 50 };
+int sumaTotal = 0;
+foreach (int num in numeros)
+{
+    sumaTotal += num;
+}
+Console.WriteLine($"Suma total: {sumaTotal}");</code></pre>
+                <div class="callout callout--info"><strong>💡 <code>foreach</code> es de solo lectura.</strong> No puedes modificar los elementos mientras los recorres.</div>`
+            },
+            {
+                title: "break y continue",
+                content: `<h2>Control de flujo: break y continue</h2>
+                <table>
+                    <tr><th>Instrucción</th><th>Qué hace</th></tr>
+                    <tr><td><code>break</code></td><td>Sale del ciclo inmediatamente</td></tr>
+                    <tr><td><code>continue</code></td><td>Salta a la siguiente iteración (ignora el resto del bloque)</td></tr>
+                </table>
+                <pre><code>// break: buscar un número y salir
+for (int i = 1; i <= 10; i++)
+{
+    if (i == 7)
+    {
+        Console.WriteLine($"Encontrado el 7!");
+        break;  // Sale del ciclo
+    }
+    Console.WriteLine(i);  // 1, 2, 3, 4, 5, 6
+}
+
+Console.WriteLine();
+
+// continue: solo números pares
+for (int i = 1; i <= 10; i++)
+{
+    if (i % 2 != 0)
+        continue;  // Salta a la siguiente iteración
+
+    Console.Write($"{i} ");  // 2 4 6 8 10
+}</code></pre>`
+            },
+            {
+                title: "Ciclos anidados",
+                content: `<h2>Ciclos anidados</h2>
+                <p>Podemos poner un ciclo dentro de otro. Útil para tablas, matrices y patrones.</p>
+                <pre><code>// Tabla de multiplicar del 1 al 5
+for (int i = 1; i <= 5; i++)
+{
+    Console.Write($"Tabla del {i}: ");
+    for (int j = 1; j <= 5; j++)
+    {
+        Console.Write($"{i*j,3}");
+    }
+    Console.WriteLine();
+}
+// Salida:
+// Tabla del 1:   1  2  3  4  5
+// Tabla del 2:   2  4  6  8 10
+// Tabla del 3:   3  6  9 12 15
+// Tabla del 4:   4  8 12 16 20
+// Tabla del 5:   5 10 15 20 25</code></pre>
+                <pre><code>// Patrón con asteriscos (triángulo)
+for (int i = 1; i <= 5; i++)
+{
+    for (int j = 1; j <= i; j++)
+    {
+        Console.Write("*");
+    }
+    Console.WriteLine();
+}
+// *
+// **
+// ***
+// ****
+// *****</code></pre>`
+            },
+            {
+                title: "Buenas prácticas",
+                content: `<h2>Buenas prácticas con ciclos</h2>
+                <table>
+                    <tr><th>Práctica</th><th>✅ Correcto</th><th>❌ Incorrecto</th></tr>
+                    <tr><td>Elegir el ciclo adecuado</td><td><code>foreach</code> para colecciones</td><td><code>for</code> con índice manual en arrays</td></tr>
+                    <tr><td>Evitar modificar el índice</td><td><code>for (int i = 0; i < n; i++)</code></td><td>Modificar <code>i</code> dentro del bloque</td></tr>
+                    <tr><td>Usar while para menús</td><td><code>while (opcion != "salir")</code></td><td><code>for (;;)</code> con break</td></tr>
+                    <tr><td>Limitar ciclos anidados</td><td>Máximo 2-3 niveles</td><td>5+ niveles (difícil de leer)</td></tr>
+                    <tr><td>Nombres claros en índices</td><td><code>i</code>, <code>j</code>, <code>k</code> (estándar)</td><td><code>a</code>, <code>b</code>, <code>x</code></td></tr>
+                </table>
+                <pre><code>// ✅ Claro: foreach expresa intención
+foreach (string producto in productos)
+{
+    Console.WriteLine(producto);
+}
+
+// ❌ Confuso: for con índice innecesario
+for (int i = 0; i < productos.Length; i++)
+{
+    Console.WriteLine(productos[i]);
+}</code></pre>`
+            },
+            {
+                title: "Ejemplo completo",
+                content: `<h2>Ejemplo completo: Juego de Adivinanza</h2>
+                <pre><code>Random random = new Random();
+int numeroSecreto = random.Next(1, 101);  // 1 a 100
+int intentos = 0;
+int maxIntentos = 7;
+bool adivinado = false;
+
+Console.WriteLine("=== ADIVINA EL NÚMERO ===");
+Console.WriteLine("He elegido un número del 1 al 100.");
+Console.WriteLine($"Tienes {maxIntentos} intentos.\n");
+
+do
+{
+    Console.Write($"Intento {intentos + 1}/{maxIntentos}: ");
+    int intento = int.Parse(Console.ReadLine());
+    intentos++;
+
+    if (intento == numeroSecreto)
+    {
+        Console.WriteLine($"🎉 ¡Correcto! Lo adivinaste en {intentos} intentos.");
+        adivinado = true;
+        break;
+    }
+    else if (intento < numeroSecreto)
+        Console.WriteLine("Más alto...");
+    else
+        Console.WriteLine("Más bajo...");
+
+} while (intentos < maxIntentos && !adivinado);
+
+if (!adivinado)
+    Console.WriteLine($"\nSe acabaron los intentos. El número era {numeroSecreto}.");
+
+Console.WriteLine("\n¡Gracias por jugar!");</code></pre>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li><code>for</code>: iteraciones con contador definido</li>
+                    <li><code>while</code>: repetición condicional (evalúa al inicio)</li>
+                    <li><code>do-while</code>: repetición condicional (evalúa al final)</li>
+                    <li><code>foreach</code>: recorrer colecciones de forma simple</li>
+                    <li><code>break</code>: salir del ciclo anticipadamente</li>
+                    <li><code>continue</code>: saltar a la siguiente iteración</li>
+                    <li>Ciclos anidados para tablas y patrones</li>
+                </ul>
+                <p style="margin-top:1rem;"><strong>Comandos clave para recordar:</strong></p>
+                <pre><code>dotnet new console -n JuegoAdivinanza
+cd JuegoAdivinanza
+dotnet run</code></pre>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡A practicar!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

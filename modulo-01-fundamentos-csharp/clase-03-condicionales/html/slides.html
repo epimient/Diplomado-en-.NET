@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 03 — Condicionales</title>
+    <style>
+        :root {
+            --bg-base: #1a1b2e;
+            --bg-panel: #24283b;
+            --bg-hover: #2f3346;
+            --text: #c0caf5;
+            --text-muted: #565f89;
+            --cyan: #7dcfff;
+            --blue: #7aa2f7;
+            --purple: #9d7cd8;
+            --green: #9ece6a;
+            --orange: #ff9e64;
+            --red: #f7768e;
+            --border: #3b4261;
+            --code-bg: #1f2335;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg-base);
+            color: var(--text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 260px;
+            background: rgba(36, 40, 59, 0.35);
+            backdrop-filter: blur(14px);
+            padding: 1.5rem;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 {
+            color: var(--cyan);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .sidebar ul { list-style: none; }
+        .sidebar li {
+            padding: 0.45rem 0.75rem;
+            margin-bottom: 0.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.15s, color 0.15s;
+        }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122, 162, 247, 0.15); color: var(--blue); font-weight: 500; }
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .toolbar {
+            padding: 0.75rem 2rem;
+            background: rgba(36, 40, 59, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            min-height: 48px;
+        }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide {
+            max-width: 900px;
+            width: 100%;
+            animation: fadeSlide 0.3s ease;
+        }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+        .slide h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--cyan);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        .slide h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--blue);
+            margin-bottom: 0.6rem;
+        }
+        .slide p {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 0.75rem;
+        }
+        .slide ul, .slide ol {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+        }
+        .slide li {
+            font-size: 0.95rem;
+            line-height: 1.65;
+            margin-bottom: 0.35rem;
+        }
+        .slide pre {
+            background: var(--code-bg);
+            padding: 0.85rem 1.1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 0.75rem;
+            border-left: 3px solid var(--blue);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .slide code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+        }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .slide th, .slide td {
+            padding: 0.55rem 0.85rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125, 207, 255, 0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+            color: var(--purple);
+            margin-bottom: 0.5rem;
+        }
+        .slide .subtitle {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        .slide .tag {
+            display: inline-block;
+            font-size: 0.72rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 4px;
+            background: rgba(122, 162, 247, 0.12);
+            color: var(--blue);
+            margin-right: 0.3rem;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+        }
+        .slide .callout {
+            padding: 0.7rem 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 6px;
+            border-left: 4px solid var(--blue);
+            background: rgba(122, 162, 247, 0.06);
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158, 206, 106, 0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255, 158, 100, 0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247, 118, 142, 0.06); }
+        .slide .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .slide .comparison > div {
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons {
+            padding: 0.7rem 2rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            align-items: center;
+            background: rgba(36, 40, 59, 0.7);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-buttons button {
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-block;
+            margin: 0 0.2rem;
+        }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) {
+            .sidebar { width: 200px; padding: 1rem; }
+            .slide { padding: 0.5rem; }
+            .slide h1 { font-size: 1.8rem; }
+            .slide h2 { font-size: 1.2rem; }
+            .slide-area { padding: 1rem; }
+            .comparison { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Clase 03</h2>
+        <ul id="toc"></ul>
+    </div>
+    <div class="main">
+        <div class="toolbar">
+            <h1>Condicionales</h1>
+            <span class="counter" id="counter">1 / 12</span>
+        </div>
+        <div class="slide-area">
+            <div class="slide" id="slide"></div>
+        </div>
+        <div class="nav-buttons" id="navButtons">
+            <button id="prevBtn" onclick="prevSlide()">◀ Anterior</button>
+            <span id="dotsContainer"></span>
+            <button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button>
+        </div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 1 · Fundamentos de C# y .NET</p>
+                <h1>Condicionales</h1>
+                <p class="subtitle">Aprende a tomar decisiones en tu código con if, else, else if, switch y el operador ternario.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 03 · Diplomado Programación con .NET</p>`
+            },
+            {
+                title: "Flujo condicional",
+                content: `<h2>¿Qué es un condicional?</h2>
+                <p>Un <strong>condicional</strong> permite ejecutar diferentes bloques de código según una condición booleana (verdadero o falso).</p>
+                <p>Imagina un semáforo:</p>
+                <ul>
+                    <li>Si está en <strong>verde</strong> → avanzar</li>
+                    <li>Si está en <strong>rojo</strong> → detenerse</li>
+                    <li>Si está en <strong>amarillo</strong> → reducir velocidad</li>
+                </ul>
+                <p>En código, esas decisiones se escriben con <code>if</code>, <code>else</code> y <code>switch</code>.</p>
+                <p><span class="tag">if</span> <span class="tag">else</span> <span class="tag">switch</span> <span class="tag">? :</span> <span class="tag">Condiciones</span></p>`
+            },
+            {
+                title: "if y else",
+                content: `<h2>Estructura if / else</h2>
+                <pre><code>if (condición)
+{
+    // Código si la condición es true
+}
+else
+{
+    // Código si la condición es false
+}</code></pre>
+                <h3>Ejemplo</h3>
+                <pre><code>Console.Write("Ingresa tu edad: ");
+int edad = int.Parse(Console.ReadLine());
+
+if (edad >= 18)
+{
+    Console.WriteLine("Eres mayor de edad.");
+}
+else
+{
+    Console.WriteLine("Eres menor de edad.");
+}</code></pre>
+                <div class="callout callout--info"><strong>💡 Las llaves {} son opcionales si hay una sola línea, pero <strong>siempre es mejor ponerlas</strong> para evitar errores.</strong></div>`
+            },
+            {
+                title: "Operadores relacionales",
+                content: `<h2>Operadores de comparación</h2>
+                <table>
+                    <tr><th>Operador</th><th>Significado</th><th>Ejemplo</th><th>Resultado</th></tr>
+                    <tr><td><code>==</code></td><td>Igual a</td><td><code>5 == 5</code></td><td><code>true</code></td></tr>
+                    <tr><td><code>!=</code></td><td>Diferente de</td><td><code>5 != 3</code></td><td><code>true</code></td></tr>
+                    <tr><td><code>&gt;</code></td><td>Mayor que</td><td><code>5 > 3</code></td><td><code>true</code></td></tr>
+                    <tr><td><code>&lt;</code></td><td>Menor que</td><td><code>5 < 3</code></td><td><code>false</code></td></tr>
+                    <tr><td><code>&gt;=</code></td><td>Mayor o igual</td><td><code>5 >= 5</code></td><td><code>true</code></td></tr>
+                    <tr><td><code>&lt;=</code></td><td>Menor o igual</td><td><code>5 <= 3</code></td><td><code>false</code></td></tr>
+                </table>
+                <div class="callout callout--warning"><strong>⚠️ ¡Cuidado!</strong> <code>=</code> es asignación, <code>==</code> es comparación. Confundirlos es el error #1 de principiantes.</div>`
+            },
+            {
+                title: "Operadores lógicos",
+                content: `<h2>Operadores lógicos</h2>
+                <p>Combinan múltiples condiciones:</p>
+                <table>
+                    <tr><th>Operador</th><th>Significado</th><th>Ejemplo</th></tr>
+                    <tr><td><code>&&</code></td><td>AND (y) — ambas deben ser true</td><td><code>edad >= 18 && tieneINE</code></td></tr>
+                    <tr><td><code>||</code></td><td>OR (o) — al menos una debe ser true</td><td><code>esAdmin || esModerador</code></td></tr>
+                    <tr><td><code>!</code></td><td>NOT (no) — invierte el valor</td><td><code>!estaBloqueado</code></td></tr>
+                </table>
+                <pre><code>int edad = 20;
+bool tieneINE = true;
+
+// AND: ambas condiciones deben cumplirse
+if (edad >= 18 && tieneINE)
+{
+    Console.WriteLine("Puedes votar.");
+}
+
+// OR: al menos una condición
+if (edad < 12 || edad > 65)
+{
+    Console.WriteLine("Tienes descuento.");
+}
+
+// NOT: invierte el booleano
+bool estaNublado = false;
+if (!estaNublado)
+{
+    Console.WriteLine("Hace buen día.");
+}</code></pre>`
+            },
+            {
+                title: "else if",
+                content: `<h2>Múltiples condiciones con else if</h2>
+                <pre><code>if (condicion1)
+{
+    // Se ejecuta si condicion1 es true
+}
+else if (condicion2)
+{
+    // Se ejecuta si condicion1 es false Y condicion2 es true
+}
+else
+{
+    // Se ejecuta si todas las condiciones son false
+}</code></pre>
+                <h3>Ejemplo: clasificación de calificaciones</h3>
+                <pre><code>Console.Write("Ingresa tu calificación (0-100): ");
+int nota = int.Parse(Console.ReadLine());
+
+if (nota >= 90)
+    Console.WriteLine("Excelente");
+else if (nota >= 70)
+    Console.WriteLine("Bueno");
+else if (nota >= 50)
+    Console.WriteLine("Regular");
+else
+    Console.WriteLine("Reprobado");</code></pre>
+                <div class="callout callout--info"><strong>💡 En cuanto una condición se cumple, el resto se ignora. El orden importa.</strong></div>`
+            },
+            {
+                title: "Switch",
+                content: `<h2>Estructura switch</h2>
+                <p>Cuando comparamos <strong>una variable contra muchos valores</strong>, <code>switch</code> es más limpio que varios <code>if-else</code>:</p>
+                <pre><code>Console.Write("Ingresa un día (1-7): ");
+int dia = int.Parse(Console.ReadLine());
+
+string nombreDia = "";
+switch (dia)
+{
+    case 1:
+        nombreDia = "Lunes";
+        break;
+    case 2:
+        nombreDia = "Martes";
+        break;
+    case 3:
+        nombreDia = "Miércoles";
+        break;
+    case 4:
+        nombreDia = "Jueves";
+        break;
+    case 5:
+        nombreDia = "Viernes";
+        break;
+    case 6:
+    case 7:
+        nombreDia = "Fin de semana";
+        break;
+    default:
+        nombreDia = "Día inválido";
+        break;
+}
+
+Console.WriteLine($"Hoy es {nombreDia}");</code></pre>
+                <div class="callout callout--success"><strong>💡 El <code>break</code> es obligatorio en cada <code>case</code>. Sin él, el programa "cae" al siguiente caso (fall-through).</strong></div>`
+            },
+            {
+                title: "Operador ternario",
+                content: `<h2>Operador ternario (? :)</h2>
+                <p>Es una forma compacta de if-else para asignar un valor:</p>
+                <pre><code>condicion ? valorSiTrue : valorSiFalse;</code></pre>
+                <h3>Ejemplos</h3>
+                <pre><code>int edad = 20;
+string mensaje = edad >= 18 ? "Mayor de edad" : "Menor de edad";
+Console.WriteLine(mensaje);
+
+// Equivalente con if-else
+if (edad >= 18)
+    mensaje = "Mayor de edad";
+else
+    mensaje = "Menor de edad";</code></pre>
+                <pre><code>int numero = 7;
+string paridad = numero % 2 == 0 ? "Par" : "Impar";
+Console.WriteLine($"{numero} es {paridad}");
+
+// Ternarios anidados (usar con cuidado)
+int nota = 85;
+string resultado = nota >= 90 ? "Excelente" :
+                   nota >= 70 ? "Bueno" : "Necesita mejorar";</code></pre>
+                <div class="callout callout--warning"><strong>⚠️ El ternario es ideal para asignaciones simples. Si la lógica es compleja, usa if-else tradicional.</strong></div>`
+            },
+            {
+                title: "Switch moderno",
+                content: `<h2>Switch con expresiones (C# 8+)</h2>
+                <p>Desde C# 8, podemos usar <strong>switch expressions</strong> para código más conciso:</p>
+                <pre><code>Console.Write("Ingresa un día (1-7): ");
+int dia = int.Parse(Console.ReadLine());
+
+string nombreDia = dia switch
+{
+    1 => "Lunes",
+    2 => "Martes",
+    3 => "Miércoles",
+    4 => "Jueves",
+    5 => "Viernes",
+    6 or 7 => "Fin de semana",
+    _ => "Día inválido"
+};
+
+Console.WriteLine($"Hoy es {nombreDia}");</code></pre>
+                <p>Diferencias clave:</p>
+                <table>
+                    <tr><th>Switch tradicional</th><th>Switch expression</th></tr>
+                    <tr><td>Usa <code>case</code>, <code>break</code></td><td>Usa <code>=></code> (arrow)</td></tr>
+                    <tr><td>No devuelve valor directo</td><td>Devuelve un valor (asignable)</td></tr>
+                    <tr><td>Más verboso</td><td>Compacto y expresivo</td></tr>
+                    <tr><td>Varios casos con <code>case 6: case 7:</code></td><td><code>6 or 7 =></code></td></tr>
+                </table>`
+            },
+            {
+                title: "Buenas prácticas",
+                content: `<h2>Buenas prácticas con condicionales</h2>
+                <table>
+                    <tr><th>Práctica</th><th>✅ Correcto</th><th>❌ Incorrecto</th></tr>
+                    <tr><td>Simplificar condiciones</td><td><code>if (activo)</code></td><td><code>if (activo == true)</code></td></tr>
+                    <tr><td>Usar ! para negar</td><td><code>if (!activo)</code></td><td><code>if (activo == false)</code></td></tr>
+                    <tr><td>Evitar ternarios anidados</td><td>Usar if-else</td><td><code>a ? b ? c : d : e</code></td></tr>
+                    <tr><td>Siempre usar llaves</td><td><code>if (x) { return; }</code></td><td><code>if (x) return;</code></td></tr>
+                    <tr><td>Switch para muchos valores</td><td><code>switch (opcion)</code></td><td>10 if-else seguidos</td></tr>
+                </table>
+                <pre><code>// ✅ Claro y directo
+bool usuarioActivo = true;
+if (usuarioActivo)
+    Console.WriteLine("Bienvenido");
+
+// ❌ Redundante y verboso
+if (usuarioActivo == true)
+    Console.WriteLine("Bienvenido");</code></pre>`
+            },
+            {
+                title: "Ejemplo completo",
+                content: `<h2>Ejemplo completo: Menú interactivo</h2>
+                <pre><code>Console.WriteLine("=== MENÚ DE OPCIONES ===");
+Console.WriteLine("1. Saludar");
+Console.WriteLine("2. Calcular edad");
+Console.WriteLine("3. Salir");
+Console.Write("Elige una opción: ");
+int opcion = int.Parse(Console.ReadLine());
+
+switch (opcion)
+{
+    case 1:
+        Console.Write("¿Cómo te llamas? ");
+        string nombre = Console.ReadLine();
+        Console.WriteLine($"¡Hola, {nombre}!");
+        break;
+    case 2:
+        Console.Write("¿En qué año naciste? ");
+        int añoNac = int.Parse(Console.ReadLine());
+        int edad = 2026 - añoNac;
+        string categoria = edad switch
+        {
+            < 13 => "niño",
+            < 18 => "adolescente",
+            < 65 => "adulto",
+            _ => "adulto mayor"
+        };
+        Console.WriteLine($"Tienes {edad} años (categoría: {categoria})");
+        break;
+    case 3:
+        Console.WriteLine("¡Hasta luego!");
+        break;
+    default:
+        Console.WriteLine("Opción inválida.");
+        break;
+}</code></pre>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Usar <code>if</code>, <code>else</code> y <code>else if</code> para decisiones</li>
+                    <li>Operadores relacionales (<code>== != > < >= <=</code>)</li>
+                    <li>Operadores lógicos (<code>&& || !</code>)</li>
+                    <li>Switch tradicional y switch expressions (C# 8+)</li>
+                    <li>Operador ternario <code>? :</code></li>
+                    <li>Elegir la estructura adecuada según el caso</li>
+                </ul>
+                <p style="margin-top:1rem;"><strong>Comandos clave para recordar:</strong></p>
+                <pre><code>dotnet new console -n MenuInteractivo
+cd MenuInteractivo
+dotnet run</code></pre>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡A practicar con los ejercicios!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

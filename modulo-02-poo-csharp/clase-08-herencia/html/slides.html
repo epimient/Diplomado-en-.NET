@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 08 — Herencia</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 08</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>Herencia</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 2 · Programación Orientada a Objetos</p>
+                <h1>Herencia</h1>
+                <p class="subtitle">Reutiliza y organiza tu código mediante jerarquías de clases. Aprende a crear relaciones "es-un" entre entidades.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 08 · Diplomado Programación con .NET</p>
+                <p><span class="tag">Herencia</span> <span class="tag">: base</span> <span class="tag">base</span> <span class="tag">override</span> <span class="tag">virtual</span></p>`
+            },
+            {
+                title: "¿Qué es herencia?",
+                content: `<h2>Herencia en POO</h2>
+                <p>La <strong>herencia</strong> permite crear una clase nueva a partir de una existente, heredando sus atributos y métodos.</p>
+                <p>Relación <strong>"es-un"</strong> (IS-A):</p>
+                <ul>
+                    <li>Un <code>Perro</code> <strong>es un</strong> <code>Animal</code></li>
+                    <li>Un <code>Coche</code> <strong>es un</strong> <code>Vehiculo</code></li>
+                    <li>Un <code>Empleado</code> <strong>es una</strong> <code>Persona</code></li>
+                </ul>
+                <div class="comparison">
+                    <div>
+                        <h4>Sin herencia ❌</h4>
+                        <p>Duplicas código en cada clase.</p>
+                        <code>class Perro { string Nombre;<br>    void Dormir() {...} }<br>class Gato { string Nombre;<br>    void Dormir() {...} }</code>
+                    </div>
+                    <div>
+                        <h4>Con herencia ✅</h4>
+                        <p>Código común en clase base.</p>
+                        <code>class Animal { string Nombre;<br>    void Dormir() {...} }<br>class Perro : Animal { }<br>class Gato : Animal { }</code>
+                    </div>
+                </div>`
+            },
+            {
+                title: "Sintaxis de herencia",
+                content: `<h2>Cómo heredar en C#</h2>
+                <p>Usamos <code>:</code> para indicar herencia:</p>
+                <pre><code>// Clase base (padre)
+public class Animal
+{
+    public string Nombre { get; set; }
+    public int Edad { get; set; }
+
+    public void Dormir()
+    {
+        Console.WriteLine($"{Nombre} está durmiendo...");
+    }
+
+    public void Comer()
+    {
+        Console.WriteLine($"{Nombre} está comiendo...");
+    }
+}
+
+// Clase derivada (hija)
+public class Perro : Animal
+{
+    public void Ladrar()
+    {
+        Console.WriteLine($"{Nombre} dice: ¡Guau!");
+    }
+}
+
+public class Gato : Animal
+{
+    public void Maullar()
+    {
+        Console.WriteLine($"{Nombre} dice: ¡Miau!");
+    }
+}</code></pre>`
+            },
+            {
+                title: "Usar herencia",
+                content: `<h2>Clases derivadas en acción</h2>
+                <pre><code>Perro perro = new Perro();
+perro.Nombre = "Max";
+perro.Edad = 3;
+perro.Comer();     // ✅ Heredado de Animal
+perro.Dormir();    // ✅ Heredado de Animal
+perro.Ladrar();    // ✅ Propio de Perro
+
+Gato gato = new Gato();
+gato.Nombre = "Luna";
+gato.Edad = 2;
+gato.Comer();      // ✅ Heredado de Animal
+gato.Maullar();    // ✅ Propio de Gato
+
+// Salida:
+// Max está comiendo...
+// Max está durmiendo...
+// Max dice: ¡Guau!
+// Luna está comiendo...
+// Luna dice: ¡Miau!</code></pre>
+                <div class="callout callout--success"><strong>💡 Las clases hijas heredan TODO lo público y protected de la clase padre. Lo private no se hereda.</strong></div>`
+            },
+            {
+                title: "Constructores y herencia",
+                content: `<h2>Constructores en herencia</h2>
+                <p>La clase hija debe llamar al constructor del padre usando <code>base</code>:</p>
+                <pre><code>public class Animal
+{
+    public string Nombre { get; set; }
+
+    public Animal(string nombre)
+    {
+        Nombre = nombre;
+        Console.WriteLine($"Animal creado: {nombre}");
+    }
+}
+
+public class Perro : Animal
+{
+    public string Raza { get; set; }
+
+    // Llama al constructor del padre con : base()
+    public Perro(string nombre, string raza) : base(nombre)
+    {
+        Raza = raza;
+        Console.WriteLine($"Perro creado: {nombre} ({raza})");
+    }
+}
+
+// Uso:
+Perro perro = new Perro("Max", "Labrador");
+// Salida:
+// Animal creado: Max
+// Perro creado: Max (Labrador)</code></pre>
+                <div class="callout callout--warning"><strong>⚠️ Si el padre no tiene constructor vacío, la hija DEBE llamar a <code>base()</code> explícitamente.</strong></div>`
+            },
+            {
+                title: "virtual y override",
+                content: `<h2>Sobrescritura de métodos (override)</h2>
+                <p>Podemos redefinir un método del padre en la clase hija:</p>
+                <pre><code>public class Animal
+{
+    public string Nombre { get; set; }
+
+    public Animal(string nombre) { Nombre = nombre; }
+
+    // virtual: permite sobrescribir en clases hijas
+    public virtual void HacerSonido()
+    {
+        Console.WriteLine("El animal hace un sonido...");
+    }
+}
+
+public class Perro : Animal
+{
+    public Perro(string nombre) : base(nombre) { }
+
+    // override: sobrescribe el método del padre
+    public override void HacerSonido()
+    {
+        Console.WriteLine($"{Nombre} dice: ¡Guau!");
+    }
+}
+
+public class Gato : Animal
+{
+    public Gato(string nombre) : base(nombre) { }
+
+    public override void HacerSonido()
+    {
+        Console.WriteLine($"{Nombre} dice: ¡Miau!");
+    }
+}</code></pre>`
+            },
+            {
+                title: "virtual y override en acción",
+                content: `<h2>Polimorfismo con override</h2>
+                <pre><code>Animal miAnimal = new Animal("Genérico");
+miAnimal.HacerSonido();  // "El animal hace un sonido..."
+
+Animal miPerro = new Perro("Max");
+miPerro.HacerSonido();   // "Max dice: ¡Guau!"
+
+Animal miGato = new Gato("Luna");
+miGato.HacerSonido();    // "Luna dice: ¡Miau!"
+
+// Array polimórfico
+Animal[] animales = new Animal[]
+{
+    new Perro("Max"),
+    new Gato("Luna"),
+    new Perro("Rocky")
+};
+
+foreach (Animal animal in animales)
+{
+    animal.HacerSonido();  // Cada uno usa su propio override
+}
+
+// Salida:
+// Max dice: ¡Guau!
+// Luna dice: ¡Miau!
+// Rocky dice: ¡Guau!</code></pre>
+                <div class="callout callout--info"><strong>💡 Esto es polimorfismo: el mismo método (<code>HacerSonido()</code>) se comporta diferente según el objeto real.</strong></div>`
+            },
+            {
+                title: "base para llamar al padre",
+                content: `<h2>Usar base para acceder al padre</h2>
+                <p>Dentro de la clase hija, <code>base</code> permite llamar métodos del padre:</p>
+                <pre><code>public class Empleado
+{
+    public string Nombre { get; set; }
+    public double SalarioBase { get; set; }
+
+    public Empleado(string nombre, double salarioBase)
+    {
+        Nombre = nombre;
+        SalarioBase = salarioBase;
+    }
+
+    public virtual double CalcularPago()
+    {
+        return SalarioBase;
+    }
+
+    public void MostrarInfo()
+    {
+        Console.WriteLine($"Empleado: {Nombre}, Pago: {CalcularPago():C}");
+    }
+}
+
+public class Vendedor : Empleado
+{
+    public double Comision { get; set; }
+
+    public Vendedor(string nombre, double salarioBase, double comision)
+        : base(nombre, salarioBase)
+    {
+        Comision = comision;
+    }
+
+    public override double CalcularPago()
+    {
+        // Llamar al método base + agregar comisión
+        return base.CalcularPago() + Comision;
+    }
+}</code></pre>`
+            },
+            {
+                title: "Sellado y clases abstractas",
+                content: `<h2>sealed y conceptos avanzados</h2>
+                <h3>Clase sellada (sealed)</h3>
+                <p>No permite herencia:</p>
+                <pre><code>public sealed class Configuracion
+{
+    public string Version { get; set; }
+}
+// public class ConfigAvanzada : Configuracion { } // ❌ Error</code></pre>
+                <h3>Método sellado</h3>
+                <p>No permite más override en subclases:</p>
+                <pre><code>public class Perro : Animal
+{
+    public sealed override void HacerSonido()
+    {
+        Console.WriteLine("Guau");
+    }
+}</code></pre>
+                <div class="comparison">
+                    <div>
+                        <h4>virtual</h4>
+                        <p>Permite sobrescribir (opcional)</p>
+                    </div>
+                    <div>
+                        <h4>abstract</h4>
+                        <p>Obliga a sobrescribir (sin implementación)</p>
+                    </div>
+                    <div>
+                        <h4>sealed</h4>
+                        <p>No permite más herencia</p>
+                    </div>
+                </div>`
+            },
+            {
+                title: "Buenas prácticas",
+                content: `<h2>Buenas prácticas con herencia</h2>
+                <table>
+                    <tr><th>Práctica</th><th>✅ Correcto</th><th>❌ Incorrecto</th></tr>
+                    <tr><td>Herencia para "es-un"</td><td><code>class Perro : Animal</code></td><td>Usar herencia para "tiene-un"</td></tr>
+                    <tr><td>Usar base en constructores</td><td><code>: base(nombre)</code></td><td>Repetir lógica del padre</td></tr>
+                    <tr><td>Preferir composición sobre herencia</td><td>Clase <code>Coche { Motor m; }</code></td><td><code>Coche : Motor</code></td></tr>
+                    <tr><td>Jerarquías poco profundas</td><td>2-3 niveles</td><td>8 niveles de herencia</td></tr>
+                    <tr><td>Sellar clases pensadas como finales</td><td><code>sealed class</code></td><td>Permitir herencia innecesaria</td></tr>
+                </table>
+                <pre><code>// ✅ Herencia correcta
+class Vehiculo { }
+class Coche : Vehiculo { }     // "es-un"
+
+// ❌ Composición sería mejor
+class Coche : Motor { }        // "es-un" no tiene sentido</code></pre>`
+            },
+            {
+                title: "Ejemplo completo",
+                content: `<h2>Ejemplo completo: Sistema de Empleados</h2>
+                <pre><code>public abstract class Empleado
+{
+    public string Nombre { get; set; }
+    
+    public Empleado(string nombre) { Nombre = nombre; }
+    
+    public abstract double CalcularPago();
+    
+    public void MostrarInfo()
+    {
+        Console.WriteLine($"{Nombre}: ${CalcularPago():F2}");
+    }
+}
+
+public class EmpleadoFijo : Empleado
+{
+    public double SalarioMensual { get; set; }
+    
+    public EmpleadoFijo(string nombre, double salario) : base(nombre)
+    {
+        SalarioMensual = salario;
+    }
+    
+    public override double CalcularPago() => SalarioMensual;
+}
+
+public class EmpleadoPorHora : Empleado
+{
+    public double Tarifa { get; set; }
+    public int Horas { get; set; }
+    
+    public EmpleadoPorHora(string nombre, double tarifa, int horas) : base(nombre)
+    {
+        Tarifa = tarifa;
+        Horas = horas;
+    }
+    
+    public override double CalcularPago() => Tarifa * Horas;
+}</code></pre>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Qué es la herencia y la relación "es-un"</li>
+                    <li>Sintaxis con <code>:</code> para heredar</li>
+                    <li>Usar <code>base</code> para llamar al constructor padre</li>
+                    <li>Métodos <code>virtual</code> y <code>override</code></li>
+                    <li>Polimorfismo con arrays de objetos</li>
+                    <li><code>sealed</code> para evitar herencia</li>
+                    <li>Cuándo usar herencia vs composición</li>
+                </ul>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡Reutiliza con herencia!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

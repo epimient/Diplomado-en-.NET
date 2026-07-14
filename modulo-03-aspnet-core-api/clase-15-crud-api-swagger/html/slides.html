@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 15 — CRUD API y Swagger</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 15</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>CRUD API y Swagger</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 3 · Desarrollo Web con ASP.NET Core</p>
+                <h1>CRUD API y Swagger</h1>
+                <p class="subtitle">Integra Entity Framework Core con controladores para crear un CRUD completo y documenta tu API automáticamente con Swagger.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 15 · Diplomado Programación con .NET</p>
+                <p><span class="tag">CRUD</span> <span class="tag">Swagger</span> <span class="tag">OpenAPI</span> <span class="tag">Documentación</span> <span class="tag">API REST</span></p>`
+            },
+            {
+                title: "Integración EF + Controladores",
+                content: `<h2>Integración de EF Core con Controladores</h2>
+                <p>Combinamos todo lo aprendido: controladores con <strong>EF Core</strong> mediante inyección de dependencias.</p>
+                <pre><code>// Program.cs — Configuración completa
+var builder = WebApplication.CreateBuilder(args);
+
+// 1. Registrar DbContext
+builder.Services.AddDbContext&lt;AppDbContext&gt;(options =>
+    options.UseSqlite(builder.Configuration
+        .GetConnectionString("DefaultConnection")));
+
+// 2. Registrar controladores
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+// 3. Middleware
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+
+// 4. Crear BD automáticamente (solo dev)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider
+        .GetRequiredService&lt;AppDbContext&gt;();
+    db.Database.EnsureCreated();
+}
+
+app.Run();</code></pre>
+                <div class="callout callout--info"><strong>💡 <code>db.Database.EnsureCreated()</code> crea la BD si no existe. Usa migraciones para producción.</strong></div>`
+            },
+            {
+                title: "CRUD completo — GET",
+                content: `<h2>CRUD: GET (Obtener)</h2>
+                <pre><code>[ApiController]
+[Route("api/[controller]")]
+public class ProductosController : ControllerBase
+{
+    private readonly AppDbContext _context;
+
+    public ProductosController(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    // GET api/productos — Obtener todos
+    [HttpGet]
+    public async Task&lt;ActionResult&lt;List&lt;ProductoDto&gt;&gt;&gt; GetAll()
+    {
+        var productos = await _context.Productos
+            .Include(p => p.Categoria)
+            .Select(p => new ProductoDto
+            {
+                Id = p.Id,
+                Nombre = p.Nombre,
+                Precio = p.Precio,
+                Categoria = p.Categoria.Nombre
+            })
+            .ToListAsync();
+
+        return Ok(productos);
+    }
+
+    // GET api/productos/5 — Obtener uno
+    [HttpGet("{id}")]
+    public async Task&lt;ActionResult&lt;ProductoDto&gt;&gt; GetById(int id)
+    {
+        var producto = await _context.Productos
+            .Include(p => p.Categoria)
+            .Where(p => p.Id == id)
+            .Select(p => new ProductoDto
+            {
+                Id = p.Id,
+                Nombre = p.Nombre,
+                Precio = p.Precio,
+                Categoria = p.Categoria.Nombre
+            })
+            .FirstOrDefaultAsync();
+
+        if (producto is null)
+            return NotFound(new { error = "Producto no encontrado" });
+
+        return Ok(producto);
+    }
+}</code></pre>`
+            },
+            {
+                title: "CRUD completo — POST",
+                content: `<h2>CRUD: POST (Crear)</h2>
+                <pre><code>// DTO de entrada
+public class CrearProductoRequest
+{
+    [Required(ErrorMessage = "El nombre es obligatorio")]
+    [StringLength(100)]
+    public string Nombre { get; set; }
+
+    [Required]
+    [StringLength(500)]
+    public string Descripcion { get; set; }
+
+    [Required]
+    [Range(0.01, 999999.99)]
+    public decimal Precio { get; set; }
+
+    [Range(0, 10000)]
+    public int Stock { get; set; }
+
+    [Required]
+    public int CategoriaId { get; set; }
+}
+
+// POST api/productos
+[HttpPost]
+public async Task&lt;ActionResult&lt;ProductoDto&gt;&gt; Create(
+    CrearProductoRequest request)
+{
+    var categoria = await _context.Categorias
+        .FindAsync(request.CategoriaId);
+
+    if (categoria is null)
+        return BadRequest(new { error = "Categoria no encontrada" });
+
+    var producto = new Producto
+    {
+        Nombre = request.Nombre,
+        Descripcion = request.Descripcion,
+        Precio = request.Precio,
+        Stock = request.Stock,
+        CategoriaId = request.CategoriaId
+    };
+
+    _context.Productos.Add(producto);
+    await _context.SaveChangesAsync();
+
+    var dto = new ProductoDto
+    {
+        Id = producto.Id,
+        Nombre = producto.Nombre,
+        Precio = producto.Precio,
+        Stock = producto.Stock,
+        Categoria = categoria.Nombre
+    };
+
+    return CreatedAtAction(nameof(GetById),
+        new { id = producto.Id }, dto);
+}</code></pre>`
+            },
+            {
+                title: "CRUD completo — PUT y DELETE",
+                content: `<h2>CRUD: PUT y DELETE</h2>
+                <pre><code>// DTO para actualizar
+public class ActualizarProductoRequest
+{
+    [Required]
+    [StringLength(100)]
+    public string Nombre { get; set; }
+
+    [StringLength(500)]
+    public string Descripcion { get; set; }
+
+    [Required]
+    [Range(0.01, 999999.99)]
+    public decimal Precio { get; set; }
+
+    [Range(0, 10000)]
+    public int Stock { get; set; }
+
+    [Required]
+    public int CategoriaId { get; set; }
+}
+
+// PUT api/productos/5
+[HttpPut("{id}")]
+public async Task&lt;IActionResult&gt; Update(int id,
+    ActualizarProductoRequest request)
+{
+    var producto = await _context.Productos.FindAsync(id);
+    if (producto is null)
+        return NotFound(new { error = "Producto no encontrado" });
+
+    var categoria = await _context.Categorias
+        .FindAsync(request.CategoriaId);
+    if (categoria is null)
+        return BadRequest(new { error = "Categoria no encontrada" });
+
+    producto.Nombre = request.Nombre;
+    producto.Descripcion = request.Descripcion;
+    producto.Precio = request.Precio;
+    producto.Stock = request.Stock;
+    producto.CategoriaId = request.CategoriaId;
+
+    await _context.SaveChangesAsync();
+    return NoContent();  // 204
+}
+
+// DELETE api/productos/5
+[HttpDelete("{id}")]
+public async Task&lt;IActionResult&gt; Delete(int id)
+{
+    var producto = await _context.Productos.FindAsync(id);
+    if (producto is null)
+        return NotFound(new { error = "Producto no encontrado" });
+
+    _context.Productos.Remove(producto);
+    await _context.SaveChangesAsync();
+    return NoContent();  // 204
+}</code></pre>`
+            },
+            {
+                title: "Swagger / OpenAPI",
+                content: `<h2>Swagger y OpenAPI</h2>
+                <p><strong>OpenAPI</strong> es una especificación estándar para describir APIs REST. <strong>Swagger</strong> es el conjunto de herramientas que implementa OpenAPI.</p>
+                <table>
+                    <tr><th>Concepto</th><th>Descripcion</th></tr>
+                    <tr><td><strong>OpenAPI</strong></td><td>Especificacion (formato YAML/JSON) que describe los endpoints, parametros, respuestas, etc.</td></tr>
+                    <tr><td><strong>Swagger UI</strong></td><td>Interfaz grafica interactiva para probar los endpoints desde el navegador</td></tr>
+                    <tr><td><strong>SwaggerGen</strong></td><td>Generador de documentos OpenAPI a partir del codigo C#</td></tr>
+                    <tr><td><strong>SwaggerMiddleware</strong></td><td>Middleware que sirve el JSON de OpenAPI y la UI</td></tr>
+                </table>
+                <div class="callout callout--success"><strong>✅ Swagger es una herramienta de documentacion y pruebas. No requeris Postman ni Thunder Client para probar tu API.</strong></div>
+                <p>Cuando ejecutas tu API, Swagger genera automaticamente:</p>
+                <ul>
+                    <li>Un documento JSON en <code>/swagger/v1/swagger.json</code></li>
+                    <li>Una UI interactiva en <code>/swagger</code></li>
+                </ul>`
+            },
+            {
+                title: "Configurar Swagger",
+                content: `<h2>Configurar Swagger en Program.cs</h2>
+                <pre><code>var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
+// Configurar Swagger
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Mi API de Productos",
+        Version = "v1",
+        Description = "API REST para gestion de productos",
+        Contact = new OpenApiContact
+        {
+            Name = "Tu Nombre",
+            Email = "email@ejemplo.com"
+        },
+        License = new OpenApiLicense
+        {
+            Name = "MIT",
+            Url = new Uri("https://opensource.org/licenses/MIT")
+        }
+    });
+});
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json",
+            "Mi API de Productos v1");
+        c.RoutePrefix = "swagger";
+    });
+}
+
+app.Run();</code></pre>
+                <div class="callout callout--info"><strong>💡 Necesitas el paquete <code>Microsoft.OpenApi</code> para usar <code>OpenApiInfo</code> y las clases de configuracion.</strong></div>`
+            },
+            {
+                title: "Swagger UI",
+                content: `<h2>Usando Swagger UI</h2>
+                <p>Cuando ejecutas la API, abre tu navegador en <code>http://localhost:5000/swagger</code>.</p>
+                <p>Swagger UI te permite:</p>
+                <ul>
+                    <li><strong>Ver todos los endpoints</strong> agrupados por controlador</li>
+                    <li><strong>Ver los modelos</strong> de entrada y salida (Request/Response)</li>
+                    <li><strong>Probar los endpoints</strong> directamente desde el navegador</li>
+                    <li><strong>Ver los codigos de estado</strong> posibles para cada operacion</li>
+                    <li><strong>Autenticarse</strong> si la API requiere token</li>
+                </ul>
+                <pre><code>// Personalizar el orden de los endpoints
+c.OrderActionsBy(apiDesc =>
+{
+    return apiDesc.ActionDescriptor.AttributeRouteInfo?.Template
+        ?? apiDesc.ActionDescriptor.DisplayName;
+});
+
+// Agrupar por tags
+c.TagActionsBy(apiDesc =>
+{
+    return new[] { apiDesc.GroupName ??
+        apiDesc.ActionDescriptor.RouteValues["controller"] };
+});
+
+// Mostrar schemas de los modelos
+c.UseOneOfForPolymorphism();</code></pre>`
+            },
+            {
+                title: "Personalización de Swagger",
+                content: `<h2>Personalizar Swagger con anotaciones</h2>
+                <p>Puedes enriquecer la documentacion usando atributos en tu codigo.</p>
+                <pre><code>using System.ComponentModel;
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("api/[controller]")]
+[Produces("application/json")]
+[Consumes("application/json")]
+public class ProductosController : ControllerBase
+{
+    /// &lt;summary&gt;
+    /// Obtiene todos los productos
+    /// &lt;/summary&gt;
+    /// &lt;remarks&gt;
+    /// Ejemplo de respuesta:
+    ///
+    ///     GET /api/productos
+    ///     [
+    ///         {
+    ///             "id": 1,
+    ///             "nombre": "Laptop",
+    ///             "precio": 999.99
+    ///         }
+    ///     ]
+    /// &lt;/remarks&gt;
+    /// &lt;response code="200"&gt;Lista de productos&lt;/response&gt;
+    [HttpGet]
+    [ProducesResponseType(typeof(List&lt;ProductoDto&gt;),
+        StatusCodes.Status200OK)]
+    public async Task&lt;IActionResult&gt; GetAll() { ... }
+
+    /// &lt;summary&gt;
+    /// Obtiene un producto por su ID
+    /// &lt;/summary&gt;
+    /// &lt;param name="id"&gt;ID del producto&lt;/param&gt;
+    /// &lt;response code="200"&gt;Producto encontrado&lt;/response&gt;
+    /// &lt;response code="404"&gt;Producto no encontrado&lt;/response&gt;
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(ProductoDto),
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task&lt;IActionResult&gt; GetById(int id) { ... }
+}</code></pre>`
+            },
+            {
+                title: "Respuestas HTTP correctas",
+                content: `<h2>Respuestas HTTP correctas en CRUD</h2>
+                <table>
+                    <tr><th>Operacion</th><th>Exito</th><th>Error cliente</th><th>Error server</th></tr>
+                    <tr><td><strong>GET /productos</strong></td><td><span style="color:var(--green);">200 OK</span> + lista</td><td>—</td><td>500</td></tr>
+                    <tr><td><strong>GET /productos/5</strong></td><td><span style="color:var(--green);">200 OK</span> + objeto</td><td><span style="color:var(--orange);">404 Not Found</span></td><td>500</td></tr>
+                    <tr><td><strong>POST /productos</strong></td><td><span style="color:var(--green);">201 Created</span> + Location header</td><td><span style="color:var(--orange);">400 Bad Request</span></td><td>500</td></tr>
+                    <tr><td><strong>PUT /productos/5</strong></td><td><span style="color:var(--green);">200 OK</span> o <span style="color:var(--green);">204 No Content</span></td><td>400 / 404</td><td>500</td></tr>
+                    <tr><td><strong>DELETE /productos/5</strong></td><td><span style="color:var(--green);">200 OK</span> o <span style="color:var(--green);">204 No Content</span></td><td>404</td><td>500</td></tr>
+                </table>
+                <pre><code>// Respuestas correctas en controlador
+[HttpGet("{id}")]
+[ProducesResponseType(typeof(ProductoDto), 200)]
+[ProducesResponseType(404)]
+public async Task&lt;IActionResult&gt; Get(int id) { }
+
+[HttpPost]
+[ProducesResponseType(typeof(ProductoDto), 201)]
+[ProducesResponseType(400)]
+public async Task&lt;IActionResult&gt; Post(CrearProductoRequest req) { }
+
+[HttpPut("{id}")]
+[ProducesResponseType(204)]
+[ProducesResponseType(400)]
+[ProducesResponseType(404)]
+public async Task&lt;IActionResult&gt; Put(int id, ActualizarProductoRequest req) { }
+
+[HttpDelete("{id}")]
+[ProducesResponseType(204)]
+[ProducesResponseType(404)]
+public async Task&lt;IActionResult&gt; Delete(int id) { }</code></pre>`
+            },
+            {
+                title: "Ejemplo completo",
+                content: `<h2>Ejemplo: API Productos con Swagger</h2>
+                <pre><code>// ──── Models ────
+public class Producto
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+    public string Descripcion { get; set; }
+    public decimal Precio { get; set; }
+    public int Stock { get; set; }
+    public int CategoriaId { get; set; }
+    public Categoria Categoria { get; set; }
+    public DateTime FechaCreacion { get; set; }
+}
+
+public class Categoria
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+    public List&lt;Producto&gt; Productos { get; set; } = new();
+}
+
+// ──── DbContext ────
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions&lt;AppDbContext&gt; o) : base(o) { }
+    public DbSet&lt;Producto&gt; Productos { get; set; }
+    public DbSet&lt;Categoria&gt; Categorias { get; set; }
+}
+
+// ──── DTOs ────
+public record ProductoDto(
+    int Id, string Nombre, decimal Precio,
+    int Stock, string Categoria);
+
+public record CrearProductoRequest(
+    [Required] string Nombre,
+    string Descripcion,
+    [Range(0.01, 999999)] decimal Precio,
+    int Stock,
+    [Required] int CategoriaId);
+
+// ──── Controller ────
+[ApiController]
+[Route("api/[controller]")]
+[Produces("application/json")]
+public class ProductosController : ControllerBase
+{
+    private readonly AppDbContext _db;
+    public ProductosController(AppDbContext db) => _db = db;
+
+    [HttpGet]
+    [ProducesResponseType(typeof(List&lt;ProductoDto&gt;), 200)]
+    public async Task&lt;ActionResult&lt;List&lt;ProductoDto&gt;&gt;&gt; GetAll()
+    {
+        var lista = await _db.Productos
+            .Include(p => p.Categoria)
+            .Select(p => new ProductoDto(
+                p.Id, p.Nombre, p.Precio,
+                p.Stock, p.Categoria.Nombre))
+            .ToListAsync();
+        return Ok(lista);
+    }
+
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(ProductoDto), 200)]
+    [ProducesResponseType(404)]
+    public async Task&lt;ActionResult&lt;ProductoDto&gt;&gt; Get(int id)
+    {
+        var p = await _db.Productos
+            .Include(x => x.Categoria)
+            .FirstOrDefaultAsync(x => x.Id == id);
+        if (p is null) return NotFound();
+        return Ok(new ProductoDto(
+            p.Id, p.Nombre, p.Precio,
+            p.Stock, p.Categoria.Nombre));
+    }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(ProductoDto), 201)]
+    [ProducesResponseType(400)]
+    public async Task&lt;ActionResult&lt;ProductoDto&gt;&gt; Post(
+        CrearProductoRequest req)
+    {
+        var cat = await _db.Categorias.FindAsync(req.CategoriaId);
+        if (cat is null) return BadRequest();
+
+        var prod = new Producto
+        {
+            Nombre = req.Nombre,
+            Descripcion = req.Descripcion,
+            Precio = req.Precio,
+            Stock = req.Stock,
+            CategoriaId = req.CategoriaId,
+            FechaCreacion = DateTime.UtcNow
+        };
+        _db.Productos.Add(prod);
+        await _db.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(Get),
+            new { id = prod.Id },
+            new ProductoDto(prod.Id, prod.Nombre, prod.Precio,
+                prod.Stock, cat.Nombre));
+    }
+
+    [HttpPut("{id}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public async Task&lt;IActionResult&gt; Put(int id, CrearProductoRequest req)
+    {
+        var prod = await _db.Productos.FindAsync(id);
+        if (prod is null) return NotFound();
+
+        var cat = await _db.Categorias.FindAsync(req.CategoriaId);
+        if (cat is null) return BadRequest();
+
+        prod.Nombre = req.Nombre;
+        prod.Descripcion = req.Descripcion;
+        prod.Precio = req.Precio;
+        prod.Stock = req.Stock;
+        prod.CategoriaId = req.CategoriaId;
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public async Task&lt;IActionResult&gt; Delete(int id)
+    {
+        var prod = await _db.Productos.FindAsync(id);
+        if (prod is null) return NotFound();
+        _db.Productos.Remove(prod);
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+}</code></pre>`
+            },
+            {
+                title: "Buenas practicas",
+                content: `<h2>Buenas practicas: CRUD + Swagger</h2>
+                <table>
+                    <tr><th>Practica</th><th>Correcto</th><th>Incorrecto</th></tr>
+                    <tr><td>Codigos de estado</td><td>201 POST, 204 PUT/DELETE</td><td>Siempre 200 OK</td></tr>
+                    <tr><td>Documentar con atributos</td><td><code>[ProducesResponseType]</code></td><td>Sin documentacion</td></tr>
+                    <tr><td>Usar DTOs</td><td>Modelos especificos por operacion</td><td>Entidades con todo incluido</td></tr>
+                    <tr><td>Swagger en desarrollo</td><td>Condicional <code>if (env.IsDevelopment())</code></td><td>Swagger en produccion</td></tr>
+                    <tr><td>Async siempre</td><td><code>async Task&lt;IActionResult&gt;</code></td><td>Sync bloqueante con BD</td></tr>
+                    <tr><td>Validacion</td><td>Data Annotations + [ApiController]</td><td>Validacion manual con ifs</td></tr>
+                    <tr><td>Descripcion de API</td><td><code>SwaggerDoc</code> con titulo y version</td><td>Documento generico</td></tr>
+                </table>
+                <pre><code>// Personalizacion completa en Program.cs
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "API Productos - Diplomado .NET",
+        Description = "API RESTful para gestion de productos",
+        Version = "v1.0.0"
+    });
+    c.IncludeXmlComments(
+        Path.Combine(AppContext.BaseDirectory,
+        "MiApi.xml"));
+});</code></pre>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Integrar <strong>EF Core</strong> con controladores mediante inyeccion de dependencias</li>
+                    <li>Implementar un <strong>CRUD completo</strong> (GET, POST, PUT, DELETE) con BD real</li>
+                    <li>Que es <strong>OpenAPI</strong> y <strong>Swagger</strong></li>
+                    <li>Configurar <strong>SwaggerGen</strong> y <strong>Swagger UI</strong> en Program.cs</li>
+                    <li>Personalizar la documentacion con atributos y XML comments</li>
+                    <li>Devolver los <strong>codigos HTTP correctos</strong> para cada operacion</li>
+                    <li>Construir una <strong>API de Productos funcional</strong> con documentacion automatica</li>
+                </ul>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">Fin del Modulo 3 - Desarrollo Web con ASP.NET Core</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

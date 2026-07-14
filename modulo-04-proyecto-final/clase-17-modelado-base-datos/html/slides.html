@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 17 — Modelado y Base de Datos</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 17</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>Modelado y Base de Datos</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 4 · Proyecto Final Integrador</p>
+                <h1>Modelado y Base de Datos</h1>
+                <p class="subtitle">Aprende a modelar tus entidades en C#, configurar Entity Framework Core con SQLite y crear migraciones para generar la base de datos.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 17 · Diplomado Programación con .NET</p>
+                <p><span class="tag">Modelos</span> <span class="tag">EF Core</span> <span class="tag">Migraciones</span> <span class="tag">SQLite</span> <span class="tag">Seed</span></p>`
+            },
+            {
+                title: "Modelos en C#",
+                content: `<h2>Clases que representan tus tablas</h2>
+                <p>Cada entidad del mundo real se convierte en una clase de C#. Cada propiedad es una columna en la base de datos.</p>
+                <pre><code>using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+public class Categoria
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    [MaxLength(100)]
+    public string Nombre { get; set; }
+
+    public string Descripcion { get; set; }
+}
+
+public class Producto
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    [MaxLength(200)]
+    public string Nombre { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Precio { get; set; }
+
+    public int Stock { get; set; }
+
+    [ForeignKey("Categoria")]
+    public int CategoriaId { get; set; }
+    public Categoria Categoria { get; set; }
+}</code></pre>
+                <p>Data Annotations más usadas:</p>
+                <table>
+                    <tr><th>Anotación</th><th>Propósito</th></tr>
+                    <tr><td><code>[Key]</code></td><td>Define la llave primaria</td></tr>
+                    <tr><td><code>[Required]</code></td><td>Campo obligatorio (NOT NULL)</td></tr>
+                    <tr><td><code>[MaxLength(n)]</code></td><td>Tamaño máximo del campo</td></tr>
+                    <tr><td><code>[ForeignKey]</code></td><td>Define la llave foránea</td></tr>
+                </table>`
+            },
+            {
+                title: "Relaciones 1:N",
+                content: `<h2>Relación uno a muchos (1:N)</h2>
+                <p>Una categoría tiene muchos productos. Un producto pertenece a una categoría.</p>
+                <pre><code>public class Categoria
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+
+    // Propiedad de navegación: Una categoría tiene muchos productos
+    public List&lt;Producto&gt; Productos { get; set; } = new();
+}
+
+public class Producto
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+    public decimal Precio { get; set; }
+
+    // FK: La clave foránea
+    public int CategoriaId { get; set; }
+
+    // Propiedad de navegación: Un producto pertenece a una categoría
+    public Categoria Categoria { get; set; }
+}</code></pre>
+                <div class="callout callout--info"><strong>💡 Convención de EF Core:</strong> Si la FK se llama <code>CategoriaId</code>, EF Core la reconoce automáticamente. La anotación <code>[ForeignKey]</code> es opcional cuando se sigue la convención.</div>
+                <p>En la base de datos se genera:</p>
+                <ul>
+                    <li>Tabla <code>Categorias</code> con columnas: Id, Nombre</li>
+                    <li>Tabla <code>Productos</code> con columnas: Id, Nombre, Precio, CategoriaId (FK)</li>
+                </ul>`
+            },
+            {
+                title: "Relaciones N:N",
+                content: `<h2>Relación muchos a muchos (N:N)</h2>
+                <p>Un libro puede tener varios autores. Un autor puede escribir varios libros.</p>
+                <pre><code>public class Libro
+{
+    public int Id { get; set; }
+    public string Titulo { get; set; }
+    public string ISBN { get; set; }
+
+    // Un libro tiene muchos autores
+    public List&lt;Autor&gt; Autores { get; set; } = new();
+}
+
+public class Autor
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+    public string Nacionalidad { get; set; }
+
+    // Un autor tiene muchos libros
+    public List&lt;Libro&gt; Libros { get; set; } = new();
+}
+
+// EF Core (desde .NET 5+) genera automáticamente
+// la tabla intermedia: AutorLibro (AutorId, LibroId)</code></pre>
+                <div class="callout callout--success"><strong>✅ EF Core 5+</strong> maneja N:N sin necesidad de una clase intermedia explícita. Si necesitas datos adicionales en la relación, crea la clase intermedia manualmente.</div>
+                <p>Si necesitas datos extra en la relación (como fecha de asociación), crea una entidad intermedia:</p>
+                <pre><code>public class LibroAutor
+{
+    public int LibroId { get; set; }
+    public Libro Libro { get; set; }
+    public int AutorId { get; set; }
+    public Autor Autor { get; set; }
+    public DateTime FechaAsignacion { get; set; }
+}</code></pre>`
+            },
+            {
+                title: "DbContext y DbSet",
+                content: `<h2>Configura el contexto de base de datos</h2>
+                <p>La clase <code>DbContext</code> es el puente entre tus modelos C# y la base de datos.</p>
+                <pre><code>using Microsoft.EntityFrameworkCore;
+
+namespace MiProyecto.Api.Data;
+
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions&lt;AppDbContext&gt; options)
+        : base(options) { }
+
+    // DbSet por cada entidad que quieras persistir
+    public DbSet&lt;Libro&gt; Libros { get; set; }
+    public DbSet&lt;Autor&gt; Autores { get; set; }
+    public DbSet&lt;Prestamo&gt; Prestamos { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        // Configurar relación N:N manual (opcional)
+        modelBuilder.Entity&lt;Libro&gt;()
+            .HasMany(l =&gt; l.Autores)
+            .WithMany(a =&gt; a.Libros);
+
+        // Configurar precisión decimal
+        modelBuilder.Entity&lt;Producto&gt;()
+            .Property(p =&gt; p.Precio)
+            .HasPrecision(18, 2);
+    }
+}</code></pre>
+                <div class="callout callout--warning"><strong>⚠️ Importante:</strong> Cada <code>DbSet&lt;T&gt;</code> se convierte en una tabla. EF Core infiere el nombre de la tabla a partir del nombre del DbSet (pluralizado automáticamente).</div>`
+            },
+            {
+                title: "Conexión SQLite y Program.cs",
+                content: `<h2>Configurar SQLite en Program.cs</h2>
+                <p>Registra el DbContext en el contenedor de dependencias y configura SQLite como motor de base de datos.</p>
+                <pre><code>using Microsoft.EntityFrameworkCore;
+using MiProyecto.Api.Data;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Agregar controladores
+builder.Services.AddControllers();
+
+// Configurar DbContext con SQLite
+builder.Services.AddDbContext&lt;AppDbContext&gt;(options =&gt;
+    options.UseSqlite(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
+
+// Configurar Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+// Middleware pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+app.MapControllers();
+
+app.Run();</code></pre>
+                <p>En <code>appsettings.json</code>:</p>
+                <pre><code>{
+  "ConnectionStrings": {
+    "DefaultConnection": "Data Source=proyecto.db"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information"
+    }
+  }
+}</code></pre>
+                <div class="callout"><strong>💡 SQLite</strong> guarda la base de datos en un solo archivo (<code>proyecto.db</code>). Ideal para desarrollo y prototipos.</div>`
+            },
+            {
+                title: "Migraciones con dotnet-ef",
+                content: `<h2>Crear y aplicar migraciones</h2>
+                <p>Las migraciones generan el esquema de la base de datos a partir de tus modelos.</p>
+                <pre><code># Instalar herramienta global (una sola vez)
+dotnet tool install --global dotnet-ef
+
+# Crear migración inicial
+dotnet ef migrations add InitialCreate
+
+# Esto genera:
+# Migrations/
+# ├── 20250101000000_InitialCreate.cs
+# └── AppDbContextModelSnapshot.cs
+
+# Aplicar migración a la BD
+dotnet ef database update
+
+# Ver SQL generado (sin aplicar)
+dotnet ef migrations script
+
+# Agregar otra migración (cuando cambies modelos)
+dotnet ef migrations add AgregarCamposNuevos
+
+# Revertir migración
+dotnet ef migrations remove
+
+# Ver lista de migraciones
+dotnet ef migrations list</code></pre>
+                <div class="callout callout--success"><strong>📌 Flujo diario:</strong> Modificas modelos → <code>dotnet ef migrations add Nombre</code> → <code>dotnet ef database update</code>.</div>
+                <div class="callout callout--warning"><strong>⚠️ Precaución:</strong> No borres archivos de migración manualmente. Usa <code>dotnet ef migrations remove</code> para deshacer la última.</div>`
+            },
+            {
+                title: "Seed Data",
+                content: `<h2>Poblar la base de datos con datos iniciales</h2>
+                <p>Usa el método <code>HasData</code> en <code>OnModelCreating</code> para insertar datos de prueba al aplicar migraciones.</p>
+                <pre><code>protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+
+    // Seed de categorías
+    modelBuilder.Entity&lt;Categoria&gt;().HasData(
+        new Categoria { Id = 1, Nombre = "Electrónica", Descripcion = "Dispositivos electrónicos" },
+        new Categoria { Id = 2, Nombre = "Ropa", Descripcion = "Prendas de vestir" },
+        new Categoria { Id = 3, Nombre = "Libros", Descripcion = "Libros y publicaciones" }
+    );
+
+    // Seed de productos (relacionados con categorías)
+    modelBuilder.Entity&lt;Producto&gt;().HasData(
+        new Producto { Id = 1, Nombre = "Laptop", Precio = 999.99m, Stock = 10, CategoriaId = 1 },
+        new Producto { Id = 2, Nombre = "Mouse", Precio = 25.50m, Stock = 50, CategoriaId = 1 },
+        new Producto { Id = 3, Nombre = "Camiseta", Precio = 19.99m, Stock = 100, CategoriaId = 2 }
+    );
+}</code></pre>
+                <div class="callout callout--warning"><strong>⚠️ Importante:</strong> Los IDs en <code>HasData</code> deben ser explícitos. EF Core los usará para insertar registros en la migración.</div>`
+            },
+            {
+                title: "SQLite",
+                content: `<h2>SQLite como motor de base de datos</h2>
+                <p>SQLite es una base de datos embebida que no requiere servidor. Perfecta para desarrollo y proyectos educativos.</p>
+                <table>
+                    <tr><th>Característica</th><th>SQLite</th><th>SQL Server / PostgreSQL</th></tr>
+                    <tr><td>Instalación</td><td>No requiere servidor</td><td>Requiere instalación y configuración</td></tr>
+                    <tr><td>Archivo</td><td>Un solo archivo <code>.db</code></td><td>Múltiples archivos y servicios</td></tr>
+                    <tr><td>Uso</td><td>Desarrollo, prototipos, apps pequeñas</td><td>Producción empresarial</td></tr>
+                    <tr><td>Puerto</td><td>No aplica</td><td>TCP/IP (1433, 5432, etc.)</td></tr>
+                    <tr><td>Concurrencia</td><td>Lectura simultánea, escritura limitada</td><td>Alta concurrencia</td></tr>
+                </table>
+                <div class="callout callout--success"><strong>✅ Para el proyecto final:</strong> SQLite es suficiente. La migración a SQL Server/PostgreSQL es mínima si usas EF Core.</div>
+                <p>Ver el archivo de base de datos:</p>
+                <pre><code># El archivo se crea en la raíz del proyecto
+# (o donde configures la connection string)
+ls -la proyecto.db
+
+# Puedes explorarlo con:
+# - SQLite Browser (GUI)
+# - dotnet ef database query
+# - sqlite3 proyecto.db (terminal)</code></pre>`
+            },
+            {
+                title: "Ejemplo Libro-Autor-Préstamo",
+                content: `<h2>Caso completo: Sistema de Biblioteca</h2>
+                <p>Modelos, DbContext y seed data para el proyecto de biblioteca.</p>
+                <pre><code>// Models/Libro.cs
+public class Libro
+{
+    public int Id { get; set; }
+    public string Titulo { get; set; }
+    public string ISBN { get; set; }
+    public int AnioPublicacion { get; set; }
+    public bool Disponible { get; set; } = true;
+    public List&lt;Autor&gt; Autores { get; set; } = new();
+    public List&lt;Prestamo&gt; Prestamos { get; set; } = new();
+}
+
+// Models/Autor.cs
+public class Autor
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+    public string Nacionalidad { get; set; }
+    public DateTime FechaNacimiento { get; set; }
+    public List&lt;Libro&gt; Libros { get; set; } = new();
+}
+
+// Models/Prestamo.cs
+public class Prestamo
+{
+    public int Id { get; set; }
+    public int LibroId { get; set; }
+    public string NombreUsuario { get; set; }
+    public DateTime FechaPrestamo { get; set; }
+    public DateTime? FechaDevolucion { get; set; }
+    public Libro Libro { get; set; }
+}</code></pre>
+                <p>En <code>AppDbContext</code>:</p>
+                <pre><code>public DbSet&lt;Libro&gt; Libros { get; set; }
+public DbSet&lt;Autor&gt; Autores { get; set; }
+public DbSet&lt;Prestamo&gt; Prestamos { get; set; }</code></pre>`
+            },
+            {
+                title: "Buenas prácticas",
+                content: `<h2>Buenas prácticas para modelado</h2>
+                <table>
+                    <tr><th>Práctica</th><th>✅ Correcto</th><th>❌ Incorrecto</th></tr>
+                    <tr><td>Nombres en inglés o español consistentes</td><td><code>Producto</code>, <code>Categoria</code></td><td>Mezclar idiomas: <code>Product</code> y <code>Categoria</code></td></tr>
+                    <tr><td>Usar <code>[Required]</code> y <code>[MaxLength]</code></td><td>Anotar propiedades obligatorias</td><td>Propiedades sin validación</td></tr>
+                    <tr><td>FK explícitas</td><td><code>public int CategoriaId { get; set; }</code></td><td>FK implícita sin propiedad</td></tr>
+                    <tr><td>Propiedades de navegación</td><td><code>public Categoria Categoria { get; set; }</code></td><td>Olvidar la nav property</td></tr>
+                    <tr><td>Inicializar colecciones</td><td><code>new List&lt;T&gt;()</code></td><td>Propiedad sin inicializar (null)</td></tr>
+                    <tr><td>Seed data con Ids fijos</td><td><code>Id = 1</code> explícito</td><td>Ids autoincrementales en seed</td></tr>
+                    <tr><td>Migraciones con nombre descriptivo</td><td><code>AddCamposAuditoria</code></td><td><code>InitialCreate2_final</code></td></tr>
+                </table>
+                <div class="callout callout--success"><strong>💡 Recomendación:</strong> Sigue las convenciones de EF Core antes de usar configuraciones manuales (Fluent API).</div>`
+            },
+            {
+                title: "Checklist de migraciones",
+                content: `<h2>Checklist — Clase 17</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase debes tener:</strong></div>
+                <table>
+                    <tr><th>#</th><th>Item</th><th>Estado</th></tr>
+                    <tr><td>1</td><td>Clases de modelo creadas con anotaciones</td><td>⬜ Pendiente</td></tr>
+                    <tr><td>2</td><td>Relaciones 1:N y N:N configuradas</td><td>⬜ Pendiente</td></tr>
+                    <tr><td>3</td><td>DbContext con DbSets registrados</td><td>⬜ Pendiente</td></tr>
+                    <tr><td>4</td><td>Conexión SQLite configurada en Program.cs</td><td>⬜ Pendiente</td></tr>
+                    <tr><td>5</td><td>Migración inicial creada y aplicada</td><td>⬜ Pendiente</td></tr>
+                    <tr><td>6</td><td>Seed data agregada en OnModelCreating</td><td>⬜ Pendiente</td></tr>
+                    <tr><td>7</td><td>Base de datos verificada (tablas + datos)</td><td>⬜ Pendiente</td></tr>
+                    <tr><td>8</td><td>Código subido a GitHub</td><td>⬜ Pendiente</td></tr>
+                </table>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Modelar entidades como clases de C# con Data Annotations</li>
+                    <li>Configurar relaciones 1:N y N:N con propiedades de navegación</li>
+                    <li>Implementar DbContext y DbSet para cada entidad</li>
+                    <li>Configurar SQLite como motor de base de datos</li>
+                    <li>Crear y aplicar migraciones con <code>dotnet-ef</code></li>
+                    <li>Poblar la base de datos con seed data inicial</li>
+                    <li>Aplicar buenas prácticas de modelado</li>
+                </ul>
+                <div class="callout callout--success"><strong>📌 Próxima clase:</strong> Clase 18 — Desarrollo de la API. Implementa los controladores REST con CRUD completo.</div>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡Tu base de datos está lista!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 20 — Presentación Final</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 20</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>Presentación Final</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 4 · Proyecto Final Integrador</p>
+                <h1>Presentación Final</h1>
+                <p class="subtitle">Prepara y presenta tu proyecto final del diplomado. Demo en vivo, criterios de evaluación y consejos para brillar.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 20 · Diplomado Programación con .NET</p>
+                <p><span class="tag">Presentación</span> <span class="tag">Demo</span> <span class="tag">Evaluación</span> <span class="tag">Cierre</span> <span class="tag">Diplomado</span></p>`
+            },
+            {
+                title: "Preparar la presentación",
+                content: `<h2>¿Cómo preparar tu presentación final?</h2>
+                <p>La presentación dura de 10 a 15 minutos por equipo. Debe ser clara, organizada y demostrar el funcionamiento del proyecto.</p>
+                <table>
+                    <tr><th>Elemento</th><th>Recomendación</th></tr>
+                    <tr><td>Duración total</td><td>10-15 minutos máximo</td></tr>
+                    <tr><td>Participantes</td><td>Todos los integrantes deben hablar</td></tr>
+                    <tr><td>Formato</td><td>Slides (PowerPoint, Google Slides, Canva) + demo en vivo</td></tr>
+                    <tr><td>Idioma</td><td>Español, claro y profesional</td></tr>
+                    <tr><td>Vestimenta</td><td>Casual profesional o formal</td></tr>
+                    <tr><td>Ensayos</td><td>Al menos 2 ensayos completos antes de la presentación</td></tr>
+                </table>
+                <div class="callout callout--success"><strong>💡 Consejo:</strong> Prepara una presentación de slides de respaldo por si la demo falla. Incluye capturas de pantalla de los endpoints funcionando.</div>
+                <p>Herramientas recomendadas para slides:</p>
+                <ul>
+                    <li>Google Slides (gratuito, colaborativo)</li>
+                    <li>PowerPoint (clásico, profesional)</li>
+                    <li>Canva (plantillas modernas)</li>
+                    <li>Slides.com (online, minimalista)</li>
+                </ul>`
+            },
+            {
+                title: "Estructura de la presentación",
+                content: `<h2>Estructura recomendada (12 minutos)</h2>
+                <table>
+                    <tr><th>Sección</th><th>Duración</th><th>Quién habla</th><th>Contenido</th></tr>
+                    <tr><td>1. Portada e introducción</td><td>1 min</td><td>Todo el equipo</td><td>Nombre del proyecto, integrantes, tecnología usada</td></tr>
+                    <tr><td>2. Problema y solución</td><td>2 min</td><td>Líder técnico</td><td>¿Qué problema resuelve? ¿Cómo lo abordaron?</td></tr>
+                    <tr><td>3. Arquitectura y diseño</td><td>2 min</td><td>Backend 1</td><td>Entidades, relaciones, DbContext, migraciones</td></tr>
+                    <tr><td>4. API y endpoints</td><td>2 min</td><td>Backend 2</td><td>Controladores, DTOs, validaciones, Swagger</td></tr>
+                    <tr><td>5. Demo en vivo</td><td>3 min</td><td>Todo el equipo</td><td>CRUD completo desde Swagger o Thunder Client</td></tr>
+                    <tr><td>6. Aprendizajes y cierre</td><td>2 min</td><td>Documentador</td><td>Qué aprendieron, dificultades, conclusión</td></tr>
+                </table>
+                <div class="callout callout--warning"><strong>⚠️ Importante:</strong> Todos los integrantes deben participar. No dejes que una sola persona hable todo el tiempo.</div>`
+            },
+            {
+                title: "Demo en vivo",
+                content: `<h2>Consejos para la demo en vivo</h2>
+                <p>La demo en vivo es la parte más importante de la presentación. Aquí verás si realmente funciona tu proyecto.</p>
+                <div class="comparison">
+                    <div>
+                        <h4>❌ Errores comunes</h4>
+                        <ul>
+                            <li>No cerrar otras aplicaciones</li>
+                            <li>Olvidar ejecutar dotnet run</li>
+                            <li>No tener la BD actualizada</li>
+                            <li>Probar endpoints sin datos</li>
+                            <li>No tener plan B si falla</li>
+                            <li>Hablar mientras se escribe código</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>✅ Buenas prácticas</h4>
+                        <ul>
+                            <li>Tener todo abierto antes de empezar</li>
+                            <li>Usar una terminal limpia y grande</li>
+                            <li>Tener datos de prueba precargados</li>
+                            <li>Mostrar casos exitosos y errores</li>
+                            <li>Tener capturas de respaldo</li>
+                            <li>Explicar mientras la audiencia ve</li>
+                        </ul>
+                    </div>
+                </div>
+                <pre><code>// Flujo de demo recomendado:
+1. dotnet run (mostrar que compila)
+2. Abrir Swagger (navegador)
+3. POST - crear un registro
+4. GET - listar (ver el nuevo registro)
+5. GET /{id} - obtener por ID
+6. PUT - actualizar el registro
+7. DELETE - eliminar
+8. GET - verificar que se eliminó
+9. GET /{id}inexistente - mostrar 404
+10. POST con datos inválidos - mostrar 400</code></pre>`
+            },
+            {
+                title: "Criterios de evaluación",
+                content: `<h2>¿Cómo se evalúa el proyecto final?</h2>
+                <p>La evaluación considera 6 categorías con la siguiente ponderación:</p>
+                <table>
+                    <tr><th>Categoría</th><th>Peso</th><th>¿Qué se evalúa?</th></tr>
+                    <tr><td><strong>Funcionalidad</strong></td><td><strong>30%</strong></td><td>La API funciona correctamente. Todos los endpoints responden como se espera. CRUD completo funcional.</td></tr>
+                    <tr><td><strong>Uso de C# y .NET</strong></td><td><strong>20%</strong></td><td>Código limpio, uso correcto de POO, controladores bien estructurados, DTOs, validaciones.</td></tr>
+                    <tr><td><strong>Base de datos y persistencia</strong></td><td><strong>15%</strong></td><td>Modelos correctos, relaciones bien definidas, migraciones funcionales, seed data.</td></tr>
+                    <tr><td><strong>API REST y Swagger</strong></td><td><strong>15%</strong></td><td>Swagger configurado, endpoints RESTful, códigos HTTP correctos, manejo de errores.</td></tr>
+                    <tr><td><strong>Documentación</strong></td><td><strong>10%</strong></td><td>README.md completo, capturas de pantalla, video demo, tabla de endpoints.</td></tr>
+                    <tr><td><strong>Presentación</strong></td><td><strong>10%</strong></td><td>Claridad, organización, participación de todos, demo exitosa, respuestas a preguntas.</td></tr>
+                </table>
+                <div class="callout callout--error"><strong>🎯 Puntaje máximo:</strong> 100 puntos. Se requiere mínimo 70 para aprobar el módulo.</div>`
+            },
+            {
+                title: "Consejos para la demo",
+                content: `<h2>Tips para que tu demo sea un éxito</h2>
+                <div class="callout callout--success"><strong>✅ Antes de la presentación:</strong></div>
+                <ul>
+                    <li>Verifica que <code>dotnet build</code> compila sin errores</li>
+                    <li>Ejecuta <code>dotnet ef database update</code> para tener la BD actualizada</li>
+                    <li>Ten datos de prueba precargados con seed data</li>
+                    <li>Cierra todas las aplicaciones que no necesites</li>
+                    <li>Configura la terminal con fondo claro o fuente grande para que se vea bien proyectado</li>
+                    <li>Ten una copia de seguridad del proyecto en una USB</li>
+                </ul>
+                <div class="callout callout--success"><strong>✅ Durante la presentación:</strong></div>
+                <ul>
+                    <li>Habla claro y pausado. No leas las diapositivas</li>
+                    <li>Mira al público, no a la pantalla</li>
+                    <li>Si la demo falla, mantén la calma y muestra las capturas de respaldo</li>
+                    <li>Explica qué estás haciendo mientras haces la demo</li>
+                    <li>Destaca las partes más interesantes de tu código</li>
+                    <li>Muestra tanto casos exitosos como manejo de errores</li>
+                </ul>
+                <div class="callout callout--warning"><strong>⚠️ Si algo sale mal:</strong> Respira profundo, di "esto es parte del desarrollo" y continúa con las capturas. Todos entienden que las demos en vivo pueden fallar.</div>`
+            },
+            {
+                title: "Preguntas frecuentes",
+                content: `<h2>Preguntas que pueden hacerte en la presentación</h2>
+                <table>
+                    <tr><th>Pregunta</th><th>Respuesta sugerida</th></tr>
+                    <tr><td>¿Por qué eligieron ese proyecto?</td><td>Nos pareció interesante porque resuelve un problema real/ Porque queríamos aprender sobre ese dominio</td></tr>
+                    <tr><td>¿Qué fue lo más difícil?</td><td>Las relaciones N:N / Las migraciones / La configuración de Swagger / Los DTOs</td></tr>
+                    <tr><td>¿Cómo se distribuyeron el trabajo?</td><td>Usamos Git con ramas por feature, cada quien tuvo un rol y nos reuníamos diariamente</td></tr>
+                    <tr><td>¿Qué es Entity Framework Core?</td><td>Es un ORM que mapea nuestras clases de C# a tablas de base de datos</td></tr>
+                    <tr><td>¿Qué ventajas tiene SQLite?</td><td>No requiere servidor, es un solo archivo, ideal para desarrollo</td></tr>
+                    <tr><td>¿Por qué usaron DTOs?</td><td>Para controlar qué datos entran y salen de la API, evitar exponer la entidad completa y romper ciclos de navegación</td></tr>
+                    <tr><td>¿Cómo manejan los errores?</td><td>Con códigos HTTP apropiados (400, 404, 500) y mensajes descriptivos en el body de la respuesta</td></tr>
+                    <tr><td>¿Se puede escalar este proyecto?</td><td>Sí, cambiando SQLite por SQL Server/PostgreSQL y agregando autenticación</td></tr>
+                    <tr><td>¿Qué aprendieron con este proyecto?</td><td>A trabajar en equipo, usar Git, desarrollar APIs con .NET y documentar profesionalmente</td></tr>
+                </table>`
+            },
+            {
+                title: "Checklist final",
+                content: `<h2>Checklist definitivo — Clase 20</h2>
+                <div class="callout callout--success"><strong>✅ Antes de presentar, verifica:</strong></div>
+                <table>
+                    <tr><th>#</th><th>Item</th><th>✅</th></tr>
+                    <tr><td>1</td><td>Proyecto compila sin errores (<code>dotnet build</code>)</td><td>⬜</td></tr>
+                    <tr><td>2</td><td>Base de datos actualizada (<code>dotnet ef database update</code>)</td><td>⬜</td></tr>
+                    <tr><td>3</td><td>API corre localmente (<code>dotnet run</code>)</td><td>⬜</td></tr>
+                    <tr><td>4</td><td>Swagger abre en el navegador</td><td>⬜</td></tr>
+                    <tr><td>5</td><td>Datos de prueba cargados (seed)</td><td>⬜</td></tr>
+                    <tr><td>6</td><td>Slides de presentación listas</td><td>⬜</td></tr>
+                    <tr><td>7</td><td>README.md completo en GitHub</td><td>⬜</td></tr>
+                    <tr><td>8</td><td>Capturas de pantalla en screenshots/</td><td>⬜</td></tr>
+                    <tr><td>9</td><td>Video demo grabado y enlazado</td><td>⬜</td></tr>
+                    <tr><td>10</td><td>Repositorio actualizado (último push)</td><td>⬜</td></tr>
+                    <tr><td>11</td><td>Todos los integrantes saben su parte</td><td>⬜</td></tr>
+                    <tr><td>12</td><td>Plan B listo (capturas por si falla la demo)</td><td>⬜</td></tr>
+                </table>`
+            },
+            {
+                title: "Cierre del diplomado",
+                content: `<h2>¡Felicidades por llegar hasta aquí!</h2>
+                <p>Has completado el Diplomado Programación con .NET. Repasemos lo que aprendiste:</p>
+                <table>
+                    <tr><th>Módulo</th><th>Contenido</th></tr>
+                    <tr><td><strong>Módulo 1</strong></td><td>Fundamentos de C#: variables, tipos, condicionales, ciclos, métodos, consola</td></tr>
+                    <tr><td><strong>Módulo 2</strong></td><td>POO: clases, objetos, herencia, polimorfismo, interfaces, colecciones, JSON, archivos</td></tr>
+                    <tr><td><strong>Módulo 3</strong></td><td>ASP.NET Core: Web API, REST, controladores, EF Core, SQLite, migraciones, Swagger</td></tr>
+                    <tr><td><strong>Módulo 4</strong></td><td>Proyecto final: planeación, modelado, desarrollo, pruebas, documentación, presentación</td></tr>
+                </table>
+                <div class="callout callout--success"><strong>🎓 Competencias adquiridas:</strong></div>
+                <ul>
+                    <li>Programar en C# con buenas prácticas</li>
+                    <li>Aplicar Programación Orientada a Objetos</li>
+                    <li>Desarrollar APIs REST con ASP.NET Core</li>
+                    <li>Persistir datos con Entity Framework Core y SQLite</li>
+                    <li>Trabajar en equipo con Git y GitHub</li>
+                    <li>Documentar y presentar proyectos técnicos</li>
+                </ul>`
+            },
+            {
+                title: "Próximos pasos",
+                content: `<h2>¿Qué sigue después del diplomado?</h2>
+                <p>Tu aprendizaje continúa. Aquí hay sugerencias para seguir creciendo como desarrollador .NET:</p>
+                <div class="comparison">
+                    <div>
+                        <h4>📚 Temas para profundizar</h4>
+                        <ul>
+                            <li>Autenticación con JWT e Identity</li>
+                            <li>Pruebas unitarias con xUnit</li>
+                            <li>Arquitectura limpia (Clean Architecture)</li>
+                            <li>Patrón Repositorio y Unit of Work</li>
+                            <li>Docker para contenedores .NET</li>
+                            <li>Azure Services (App Service, SQL)</li>
+                            <li>Blazor WebAssembly</li>
+                            <li>gRPC y SignalR</li>
+                            <li>Rendimiento y caché con Redis</li>
+                            <li>CI/CD con GitHub Actions</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>🚀 Proyectos para practicar</h4>
+                        <ul>
+                            <li>Agregar autenticación a tu proyecto final</li>
+                            <li>Crear un frontend con Blazor o React</li>
+                            <li>Desplegar la API en Azure o Render</li>
+                            <li>Agregar pruebas unitarias con xUnit</li>
+                            <li>Migrar de SQLite a SQL Server</li>
+                            <li>Hacer una app mobile con MAUI</li>
+                            <li>Crear un dashboard con gráficos</li>
+                            <li>Implementar un chat en tiempo real</li>
+                            <li>Publicar como paquete NuGet</li>
+                            <li>Contribuir a un proyecto open source</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="callout"><strong>💡 Recuerda:</strong> La mejor forma de aprender es construyendo. Sigue programando todos los días.</div>`
+            },
+            {
+                title: "Agradecimientos y cierre",
+                content: `<h2>¡Gracias por tu esfuerzo!</h2>
+                <p>Este diplomado fue diseñado para darte las bases sólidas de programación con .NET.</p>
+                <div class="callout callout--success"><strong>🎉 Logros del diplomado:</strong></div>
+                <ul>
+                    <li>Más de 20 clases prácticas</li>
+                    <li>Decenas de ejercicios y ejemplos</li>
+                    <li>Múltiples proyectos pequeños</li>
+                    <li>Un proyecto final completo y funcional</li>
+                    <li>Trabajo en equipo con Git y GitHub</li>
+                    <li>Presentación profesional del proyecto</li>
+                </ul>
+                <p style="color:var(--cyan);font-size:1.15rem;margin-top:0.8rem;">Sigue aprendiendo, sigue construyendo, sigue compartiendo.</p>
+                <p style="color:var(--green);font-size:1.3rem;font-weight:600;margin-top:1rem;">¡Felicitaciones por completar el diplomado!</p>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Cómo preparar una presentación técnica efectiva</li>
+                    <li>La estructura recomendada para presentar tu proyecto</li>
+                    <li>Cómo hacer una demo en vivo sin contratiempos</li>
+                    <li>Los criterios de evaluación del proyecto final</li>
+                    <li>Qué preguntas pueden hacerte y cómo responderlas</li>
+                    <li>El checklist completo para asegurar una entrega exitosa</li>
+                    <li>Qué temas puedes aprender después del diplomado</li>
+                </ul>
+                <div class="callout callout--success" style="margin-top:1.2rem;"><strong>🎓 ¡Has completado el Diplomado Programación con .NET!</strong></div>
+                <p style="color:var(--green);font-size:1.3rem;font-weight:700;margin-top:1rem;">¡Gracias y mucho éxito en tu camino como desarrollador!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

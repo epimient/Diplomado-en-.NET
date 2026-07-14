@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 12 — HTTP, REST y Controladores</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 12</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>HTTP, REST y Controladores</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 3 · Desarrollo Web con ASP.NET Core</p>
+                <h1>HTTP, REST y Controladores</h1>
+                <p class="subtitle">Domina el protocolo HTTP, los principios REST y la creación de controladores en ASP.NET Core para construir APIs profesionales.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 12 · Diplomado Programación con .NET</p>
+                <p><span class="tag">HTTP</span> <span class="tag">REST</span> <span class="tag">Controladores</span> <span class="tag">IActionResult</span> <span class="tag">CRUD</span></p>`
+            },
+            {
+                title: "¿Qué es HTTP?",
+                content: `<h2>HTTP — Protocolo de Transferencia de Hipertexto</h2>
+                <p>HTTP es el protocolo que permite la comunicación entre clientes (navegador, app móvil, Postman) y servidores web.</p>
+                <div class="callout"><strong>📡 Funcionamiento básico:</strong> El cliente envía una <strong>solicitud (request)</strong> y el servidor devuelve una <strong>respuesta (response)</strong>.</div>
+                <pre><code>// Estructura de una petición HTTP
+GET /api/productos HTTP/1.1
+Host: localhost:5000
+Accept: application/json
+Authorization: Bearer token123
+
+// Estructura de una respuesta HTTP
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Mon, 07 Jul 2026 12:00:00 GMT
+
+[
+    { "id": 1, "nombre": "Laptop" },
+    { "id": 2, "nombre": "Mouse" }
+]</code></pre>
+                <table>
+                    <tr><th>Componente</th><th>Descripción</th></tr>
+                    <tr><td>Método HTTP</td><td>GET, POST, PUT, DELETE, PATCH</td></tr>
+                    <tr><td>URL / Endpoint</td><td>Ej: <code>/api/productos/5</code></td></tr>
+                    <tr><td>Headers</td><td>Metadatos: Content-Type, Authorization</td></tr>
+                    <tr><td>Body</td><td>Contenido (en POST/PUT)</td></tr>
+                    <tr><td>Código de estado</td><td>200, 201, 400, 404, 500, etc.</td></tr>
+                </table>`
+            },
+            {
+                title: "Verbos HTTP y códigos",
+                content: `<h2>Verbos HTTP y códigos de estado</h2>
+                <p>Cada verbo HTTP tiene un propósito específico y un código de respuesta esperado.</p>
+                <table>
+                    <tr><th>Verbo</th><th>Propósito</th><th>Endpoint ejemplo</th><th>Códigos de respuesta</th></tr>
+                    <tr><td><code>GET</code></td><td>Obtener recurso(s)</td><td><code>GET /api/productos</code></td><td>200 OK</td></tr>
+                    <tr><td><code>GET</code></td><td>Obtener uno</td><td><code>GET /api/productos/5</code></td><td>200 OK · 404 Not Found</td></tr>
+                    <tr><td><code>POST</code></td><td>Crear recurso</td><td><code>POST /api/productos</code></td><td>201 Created · 400 Bad Request</td></tr>
+                    <tr><td><code>PUT</code></td><td>Actualizar recurso</td><td><code>PUT /api/productos/5</code></td><td>200 OK · 204 No Content · 404</td></tr>
+                    <tr><td><code>DELETE</code></td><td>Eliminar recurso</td><td><code>DELETE /api/productos/5</code></td><td>200 OK · 204 No Content · 404</td></tr>
+                </table>
+                <h3>Códigos de estado más comunes</h3>
+                <table>
+                    <tr><th>Código</th><th>Significado</th><th>Uso</th></tr>
+                    <tr><td><span style="color:var(--green);">200</span></td><td>OK</td><td>Operación exitosa</td></tr>
+                    <tr><td><span style="color:var(--green);">201</span></td><td>Created</td><td>Recurso creado correctamente</td></tr>
+                    <tr><td><span style="color:var(--green);">204</span></td><td>No Content</td><td>Éxito sin contenido en body</td></tr>
+                    <tr><td><span style="color:var(--orange);">400</span></td><td>Bad Request</td><td>Datos inválidos del cliente</td></tr>
+                    <tr><td><span style="color:var(--orange);">404</span></td><td>Not Found</td><td>Recurso no encontrado</td></tr>
+                    <tr><td><span style="color:var(--red);">500</span></td><td>Internal Server Error</td><td>Error del servidor</td></tr>
+                </table>`
+            },
+            {
+                title: "REST",
+                content: `<h2>REST — Representational State Transfer</h2>
+                <p>REST es un <strong>estilo arquitectónico</strong> para diseñar APIs web. No es un protocolo ni una librería, sino un conjunto de principios.</p>
+                <h3>Principios REST</h3>
+                <table>
+                    <tr><th>Principio</th><th>Descripción</th></tr>
+                    <tr><td>Recursos</td><td>Todo es un recurso: <code>/productos</code>, <code>/usuarios</code></td></tr>
+                    <tr><td>Verbos HTTP</td><td>GET, POST, PUT, DELETE definen la acción</td></tr>
+                    <tr><td>Stateless</td><td>Cada petición es independiente. No hay estado del cliente en el servidor</td></tr>
+                    <tr><td>URLs descriptivas</td><td><code>/api/productos/5</code> y no <code>/api/obtenerProducto?id=5</code></td></tr>
+                    <tr><td>Formato estándar</td><td>JSON como formato de intercambio</td></tr>
+                    <tr><td>Códigos de estado</td><td>Usar códigos HTTP correctos</td></tr>
+                </table>
+                <div class="comparison">
+                    <div>
+                        <h4>No REST ❌</h4>
+                        <code>GET /api/obtenerProductos<br>POST /api/crearProducto<br>GET /api/borrarProducto?id=5<br>Respuesta: { "success": true }</code>
+                    </div>
+                    <div>
+                        <h4>REST ✅</h4>
+                        <code>GET  /api/productos<br>POST /api/productos<br>DELETE /api/productos/5<br>Respuesta: 204 No Content</code>
+                    </div>
+                </div>`
+            },
+            {
+                title: "Controladores",
+                content: `<h2>Controladores en ASP.NET Core</h2>
+                <p>Un controlador es una clase que agrupa endpoints relacionados. Hereda de <code>ControllerBase</code> y se decora con atributos.</p>
+                <pre><code>using Microsoft.AspNetCore.Mvc;
+
+[ApiController]                     // Habilita validación automática
+[Route("api/[controller]")]         // Ruta base: api/productos
+public class ProductosController : ControllerBase
+{
+    private static List<Producto> productos = new();
+
+    [HttpGet]                       // GET api/productos
+    public IActionResult Get()
+    {
+        return Ok(productos);
+    }
+
+    [HttpGet("{id}")]               // GET api/productos/1
+    public IActionResult Get(int id)
+    {
+        var p = productos.FirstOrDefault(x => x.Id == id);
+        if (p is null) return NotFound();
+        return Ok(p);
+    }
+}</code></pre>
+                <p>Cada método público es una <strong>acción</strong> que responde a una solicitud HTTP.</p>`
+            },
+            {
+                title: "[ApiController] y [Route]",
+                content: `<h2>Atributos [ApiController] y [Route]</h2>
+                <h3>[ApiController]</h3>
+                <p>Habilita comportamientos automáticos:</p>
+                <ul>
+                    <li><strong>Validación automática</strong> del modelo (ModelState inválido → 400)</li>
+                    <li><strong>Binding automático</strong> de parámetros desde el body</li>
+                    <li><strong>Atributo [FromBody] implícito</strong> para tipos complejos</li>
+                    <li>Error 400 con detalles automáticos</li>
+                </ul>
+                <pre><code>[ApiController]
+[Route("api/[controller]")]
+public class ProductosController : ControllerBase
+{
+    // Sin [ApiController] necesitarías:
+    // public IActionResult Post([FromBody] Producto p)
+    [HttpPost]
+    public IActionResult Post(Producto p)  // [FromBody] implícito
+    {
+        // Si el modelo es inválido, automáticamente 400 Bad Request
+        productos.Add(p);
+        return CreatedAtAction(nameof(Get), new { id = p.Id }, p);
+    }
+}</code></pre>
+                <h3>[Route]</h3>
+                <ul>
+                    <li><code>[Route("api/[controller]")]</code> → <code>[controller]</code> se reemplaza por el nombre del controlador sin "Controller"</li>
+                    <li><code>[Route("api/productos")]</code> → Ruta fija</li>
+                </ul>`
+            },
+            {
+                title: "Parámetros: FromBody, FromRoute, FromQuery",
+                content: `<h2>De dónde vienen los parámetros</h2>
+                <p>Los datos pueden venir de distintas partes de la petición HTTP. Usamos atributos para indicarlo.</p>
+                <table>
+                    <tr><th>Atributo</th><th>Fuente</th><th>Ejemplo URL</th></tr>
+                    <tr><td><code>[FromRoute]</code></td><td>Parte de la ruta</td><td><code>/api/productos/5</code> → <code>id = 5</code></td></tr>
+                    <tr><td><code>[FromQuery]</code></td><td>Query string</td><td><code>/api/productos?categoria=electronica</code></td></tr>
+                    <tr><td><code>[FromBody]</code></td><td>Cuerpo JSON</td><td>POST <code>{ "nombre": "Laptop" }</code></td></tr>
+                    <tr><td><code>[FromHeader]</code></td><td>Encabezado HTTP</td><td><code>Authorization: Bearer xxx</code></td></tr>
+                    <tr><td><code>[FromForm]</code></td><td>Formulario HTML</td><td><code>multipart/form-data</code></td></tr>
+                </table>
+                <pre><code>[HttpGet("{id}")]                  // id viene de la ruta
+public IActionResult Get([FromRoute] int id) { }
+
+[HttpGet]                            // filtro desde query string
+public IActionResult Get([FromQuery] string categoria) { }
+
+[HttpPost]                           // body JSON (implícito con [ApiController])
+public IActionResult Post([FromBody] Producto producto) { }</code></pre>
+                <div class="callout callout--info"><strong>💡 Con [ApiController], los tipos complejos se boundean desde el body automáticamente.</strong></div>`
+            },
+            {
+                title: "IActionResult vs ActionResult<T>",
+                content: `<h2>IActionResult vs ActionResult&lt;T&gt;</h2>
+                <p>Ambos son tipos de retorno para acciones. La diferencia está en el tipado.</p>
+                <div class="comparison">
+                    <div>
+                        <h4>IActionResult</h4>
+                        <pre><code>[HttpGet]
+public IActionResult Get()
+{
+    if (productos.Count == 0)
+        return NoContent();  // 204
+
+    return Ok(productos);    // 200
+}</code></pre>
+                        <p>✅ Flexibilidad total<br>❌ Sin tipo explícito de retorno</p>
+                    </div>
+                    <div>
+                        <h4>ActionResult&lt;T&gt;</h4>
+                        <pre><code>[HttpGet("{id}")]
+public ActionResult&lt;Producto&gt; Get(int id)
+{
+    var p = productos.Find(x => x.Id == id);
+    if (p is null) return NotFound();  // 404
+    return p;  // 200 implícito
+}</code></pre>
+                        <p>✅ Tipo explícito en la firma<br>✅ Swagger documenta el modelo</p>
+                    </div>
+                </div>
+                <p>¿Cuál usar?</p>
+                <ul>
+                    <li><code>IActionResult</code> → Cuando necesitas total control (varios códigos posibles)</li>
+                    <li><code>ActionResult&lt;T&gt;</code> → Cuando generalmente devuelves el tipo T con posibles errores</li>
+                </ul>`
+            },
+            {
+                title: "Ejemplo CRUD productos",
+                content: `<h2>Ejemplo: CRUD completo de productos</h2>
+                <pre><code>[ApiController]
+[Route("api/[controller]")]
+public class ProductosController : ControllerBase
+{
+    private static List<Producto> _productos = new();
+    private static int _nextId = 1;
+
+    // GET api/productos
+    [HttpGet]
+    public ActionResult&lt;List&lt;Producto&gt;&gt; Get()
+        => Ok(_productos);
+
+    // GET api/productos/5
+    [HttpGet("{id}")]
+    public ActionResult&lt;Producto&gt; Get(int id)
+    {
+        var p = _productos.FirstOrDefault(x => x.Id == id);
+        if (p is null) return NotFound(
+            new { error = "Producto no encontrado" });
+        return Ok(p);
+    }
+
+    // POST api/productos
+    [HttpPost]
+    public ActionResult&lt;Producto&gt; Post(Producto p)
+    {
+        p.Id = _nextId++;
+        _productos.Add(p);
+        return CreatedAtAction(nameof(Get), new { id = p.Id }, p);
+    }
+
+    // PUT api/productos/5
+    [HttpPut("{id}")]
+    public IActionResult Put(int id, Producto p)
+    {
+        var existente = _productos.FirstOrDefault(x => x.Id == id);
+        if (existente is null) return NotFound();
+
+        existente.Nombre = p.Nombre;
+        existente.Precio = p.Precio;
+        return NoContent();  // 204
+    }
+
+    // DELETE api/productos/5
+    [HttpDelete("{id}")]
+    public IActionResult Delete(int id)
+    {
+        var p = _productos.FirstOrDefault(x => x.Id == id);
+        if (p is null) return NotFound();
+        _productos.Remove(p);
+        return NoContent();  // 204
+    }
+}</code></pre>`
+            },
+            {
+                title: "Buenas prácticas",
+                content: `<h2>Buenas prácticas en Controladores</h2>
+                <table>
+                    <tr><th>Práctica</th><th>✅ Correcto</th><th>❌ Incorrecto</th></tr>
+                    <tr><td>Nombres de endpoints</td><td><code>/api/productos</code> (plural)</td><td><code>/api/producto</code> (singular)</td></tr>
+                    <tr><td>Códigos de estado</td><td>201 Created en POST</td><td>Siempre 200 OK</td></tr>
+                    <tr><td>Manejo de errores</td><td><code>return NotFound()</code></td><td>Devolver null</td></tr>
+                    <tr><td>Parámetros</td><td><code>[FromRoute]</code>, <code>[FromQuery]</code></td><td>Todo como query string</td></tr>
+                    <tr><td>Validación</td><td>Data Annotations + ModelState</td><td>Validar manualmente</td></tr>
+                    <tr><td>Async cuando hay I/O</td><td><code>async Task&lt;IActionResult&gt;</code></td><td>Métodos síncronos con BD</td></tr>
+                </table>
+                <pre><code>// Modelo de producto
+public class Producto
+{
+    public int Id { get; set; }
+    [Required]
+    public string Nombre { get; set; }
+    [Range(0.01, double.MaxValue)]
+    public decimal Precio { get; set; }
+    public string Categoria { get; set; }
+}</code></pre>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Cómo funciona el <strong>protocolo HTTP</strong> (request/response)</li>
+                    <li>Los <strong>verbos HTTP</strong> (GET, POST, PUT, DELETE) y sus códigos de estado</li>
+                    <li>Los <strong>principios REST</strong> para diseñar APIs</li>
+                    <li>Crear <strong>controladores</strong> con [ApiController] y [Route]</li>
+                    <li>Usar <strong>[FromBody], [FromRoute], [FromQuery]</strong> para binding</li>
+                    <li>Diferencias entre <strong>IActionResult</strong> y <strong>ActionResult&lt;T&gt;</strong></li>
+                    <li>Implementar un <strong>CRUD completo</strong> de productos</li>
+                </ul>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡Clase 12 completada!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

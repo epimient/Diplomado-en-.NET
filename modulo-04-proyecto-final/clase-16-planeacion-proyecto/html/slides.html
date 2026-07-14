@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 16 — Planeación del Proyecto Final</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 16</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>Planeación del Proyecto Final</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 4 · Proyecto Final Integrador</p>
+                <h1>Planeación del Proyecto Final</h1>
+                <p class="subtitle">Define el alcance, las entidades, los endpoints y la organización de tu equipo para construir una API REST funcional con ASP.NET Core.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 16 · Diplomado Programación con .NET</p>
+                <p><span class="tag">Planeación</span> <span class="tag">Entidades</span> <span class="tag">Endpoints</span> <span class="tag">GitHub</span> <span class="tag">Milestones</span></p>`
+            },
+            {
+                title: "Objetivos del proyecto final",
+                content: `<h2>¿Qué lograrás con el proyecto final?</h2>
+                <p>El proyecto final integra todos los conocimientos adquiridos durante el diplomado:</p>
+                <table>
+                    <tr><th>#</th><th>Objetivo</th><th>Módulo relacionado</th></tr>
+                    <tr><td>1</td><td>Aplicar fundamentos de C# y .NET en un proyecto real</td><td>Módulo 1</td></tr>
+                    <tr><td>2</td><td>Modelar clases con Programación Orientada a Objetos</td><td>Módulo 2</td></tr>
+                    <tr><td>3</td><td>Desarrollar una API REST con ASP.NET Core</td><td>Módulo 3</td></tr>
+                    <tr><td>4</td><td>Persistir datos con Entity Framework Core y SQLite</td><td>Módulo 3</td></tr>
+                    <tr><td>5</td><td>Documentar la API con Swagger / OpenAPI</td><td>Módulo 3</td></tr>
+                    <tr><td>6</td><td>Trabajar en equipo usando Git y GitHub</td><td>Transversal</td></tr>
+                    <tr><td>7</td><td>Presentar un proyecto funcional y documentado</td><td>Transversal</td></tr>
+                </table>
+                <div class="callout callout--success"><strong>🎯 Meta:</strong> Cada equipo entrega una API REST funcional con base de datos, documentación y presentación final.</div>`
+            },
+            {
+                title: "Requisitos mínimos",
+                content: `<h2>Requisitos técnicos del proyecto</h2>
+                <p>Tu proyecto debe cumplir con los siguientes requisitos mínimos:</p>
+                <table>
+                    <tr><th>Requisito</th><th>Detalle</th></tr>
+                    <tr><td>Entidades</td><td>Al menos 2 entidades relacionadas (ej. Libro y Autor)</td></tr>
+                    <tr><td>CRUD completo</td><td>GET, POST, PUT, DELETE por cada entidad principal</td></tr>
+                    <tr><td>Entity Framework Core</td><td>ORM para acceso a datos con SQLite</td></tr>
+                    <tr><td>SQLite</td><td>Base de datos local sin servidor</td></tr>
+                    <tr><td>Swagger</td><td>Documentación interactiva de la API</td></tr>
+                    <tr><td>DTOs</td><td>Modelos de entrada y salida para la API</td></tr>
+                    <tr><td>Validaciones</td><td>Validaciones básicas con Data Annotations</td></tr>
+                    <tr><td>Manejo de errores</td><td>Respuestas HTTP adecuadas (400, 404, 500)</td></tr>
+                    <tr><td>Git + GitHub</td><td>Repositorio con commits significativos</td></tr>
+                    <tr><td>README.md</td><td>Documentación profesional del proyecto</td></tr>
+                </table>
+                <div class="callout callout--warning"><strong>⚠️ Importante:</strong> El proyecto debe ser funcional. Es mejor un proyecto simple pero completo que uno ambicioso pero inconcluso.</div>`
+            },
+            {
+                title: "Ideas de proyecto",
+                content: `<h2>Elige una idea para tu proyecto</h2>
+                <p>Todas las ideas siguen la misma estructura: API REST + BD SQLite + CRUD + Swagger.</p>
+                <table>
+                    <tr><th>Proyecto</th><th>Entidad 1</th><th>Entidad 2</th><th>Relación</th></tr>
+                    <tr><td>Biblioteca</td><td>Libro</td><td>Autor</td><td>N:N</td></tr>
+                    <tr><td>Inventario</td><td>Producto</td><td>Categoría</td><td>1:N</td></tr>
+                    <tr><td>Restaurante</td><td>Plato</td><td>Pedido</td><td>N:M</td></tr>
+                    <tr><td>Hotel</td><td>Habitación</td><td>Reserva</td><td>1:N</td></tr>
+                    <tr><td>Gimnasio</td><td>Miembro</td><td>Clase</td><td>N:N</td></tr>
+                    <tr><td>Parqueadero</td><td>Vehículo</td><td>Ticket</td><td>1:N</td></tr>
+                    <tr><td>Agenda médica</td><td>Paciente</td><td>Cita</td><td>1:N</td></tr>
+                    <tr><td>Ventas</td><td>Cliente</td><td>Factura</td><td>1:N</td></tr>
+                    <tr><td>Gestión tareas</td><td>Tarea</td><td>Proyecto</td><td>N:1</td></tr>
+                    <tr><td>Gestión clientes</td><td>Cliente</td><td>Contacto</td><td>1:N</td></tr>
+                </table>
+                <div class="callout"><strong>💡 Sugerencia:</strong> Elige un dominio que conozcas bien. Así será más fácil modelar las entidades y relaciones.</div>`
+            },
+            {
+                title: "Definir entidades y relaciones",
+                content: `<h2>Paso 1: Define tus entidades</h2>
+                <p>Ejemplo con el proyecto <strong>Sistema de Biblioteca</strong>:</p>
+                <pre><code>// Entidad: Libro
+public class Libro
+{
+    public int Id { get; set; }
+    public string Titulo { get; set; }
+    public string ISBN { get; set; }
+    public int AnioPublicacion { get; set; }
+    public bool Disponible { get; set; }
+    public List&lt;Autor&gt; Autores { get; set; } = new();
+}
+
+// Entidad: Autor
+public class Autor
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+    public string Nacionalidad { get; set; }
+    public DateTime FechaNacimiento { get; set; }
+    public List&lt;Libro&gt; Libros { get; set; } = new();
+}
+
+// Entidad: Prestamo
+public class Prestamo
+{
+    public int Id { get; set; }
+    public int LibroId { get; set; }
+    public string NombreUsuario { get; set; }
+    public DateTime FechaPrestamo { get; set; }
+    public DateTime? FechaDevolucion { get; set; }
+    public Libro Libro { get; set; }
+}</code></pre>
+                <p><strong>Relaciones:</strong> Libro ↔ Autor (N:N), Libro → Préstamo (1:N)</p>`
+            },
+            {
+                title: "Planificar endpoints",
+                content: `<h2>Paso 2: Define los endpoints de tu API</h2>
+                <p>Ejemplo para el proyecto Biblioteca:</p>
+                <table>
+                    <tr><th>Método</th><th>Endpoint</th><th>Descripción</th></tr>
+                    <tr><td>GET</td><td><code>/api/libros</code></td><td>Obtener todos los libros</td></tr>
+                    <tr><td>GET</td><td><code>/api/libros/{id}</code></td><td>Obtener libro por ID</td></tr>
+                    <tr><td>POST</td><td><code>/api/libros</code></td><td>Crear un nuevo libro</td></tr>
+                    <tr><td>PUT</td><td><code>/api/libros/{id}</code></td><td>Actualizar un libro</td></tr>
+                    <tr><td>DELETE</td><td><code>/api/libros/{id}</code></td><td>Eliminar un libro</td></tr>
+                    <tr><td>GET</td><td><code>/api/autores</code></td><td>Obtener todos los autores</td></tr>
+                    <tr><td>GET</td><td><code>/api/autores/{id}</code></td><td>Obtener autor por ID</td></tr>
+                    <tr><td>POST</td><td><code>/api/autores</code></td><td>Crear un nuevo autor</td></tr>
+                    <tr><td>PUT</td><td><code>/api/autores/{id}</code></td><td>Actualizar un autor</td></tr>
+                    <tr><td>DELETE</td><td><code>/api/autores/{id}</code></td><td>Eliminar un autor</td></tr>
+                    <tr><td>GET</td><td><code>/api/prestamos</code></td><td>Obtener todos los préstamos</td></tr>
+                    <tr><td>POST</td><td><code>/api/prestamos</code></td><td>Registrar un préstamo</td></tr>
+                    <tr><td>PUT</td><td><code>/api/prestamos/{id}/devolver</code></td><td>Registrar devolución</td></tr>
+                </table>
+                <div class="callout"><strong>💡 Consejo:</strong> Define primero todos los endpoints en una tabla. Esto guiará la implementación.</div>`
+            },
+            {
+                title: "Mockups y prototipos",
+                content: `<h2>Paso 3: Visualiza tu API con mockups</h2>
+                <p>No necesitas una interfaz gráfica. Los mockups de API describen qué esperar de cada endpoint.</p>
+                <pre><code>// Ejemplo de mockup: POST /api/libros
+// Request body:
+{
+    "titulo": "Cien años de soledad",
+    "isbn": "978-84-376-0494-7",
+    "anioPublicacion": 1967,
+    "autorIds": [1, 2]
+}
+
+// Response body (201 Created):
+{
+    "id": 1,
+    "titulo": "Cien años de soledad",
+    "isbn": "978-84-376-0494-7",
+    "anioPublicacion": 1967,
+    "disponible": true,
+    "autores": [
+        { "id": 1, "nombre": "Gabriel García Márquez" }
+    ]
+}</code></pre>
+                <p>Define el formato JSON de entrada y salida para cada endpoint antes de codificar.</p>
+                <div class="callout callout--success"><strong>✅ Beneficio:</strong> Los mockups alinean al equipo sobre el formato esperado de los datos.</div>`
+            },
+            {
+                title: "Organización del equipo",
+                content: `<h2>Paso 4: Organiza el trabajo en equipo</h2>
+                <p>Distribución sugerida de roles para equipos de 2 a 4 personas:</p>
+                <table>
+                    <tr><th>Rol</th><th>Responsabilidades</th></tr>
+                    <tr><td><strong>Líder técnico</strong></td><td>Coordina la arquitectura, revisa PRs, asegura calidad del código</td></tr>
+                    <tr><td><strong>Backend 1</strong></td><td>Modelos, DbContext, migraciones, seed data</td></tr>
+                    <tr><td><strong>Backend 2</strong></td><td>Controladores, DTOs, validaciones, Swagger</td></tr>
+                    <tr><td><strong>Documentador</strong></td><td>README.md, capturas, video demo, pruebas desde Swagger</td></tr>
+                </table>
+                <div class="callout callout--warning"><strong>⚠️ Importante:</strong> Todos deben participar en la codificación. No dividas el trabajo de forma que alguien solo documente.</div>
+                <p>Estrategia de trabajo con Git:</p>
+                <ul>
+                    <li>Cada integrante trabaja en una rama separada (<code>feature/libros</code>, <code>feature/autores</code>)</li>
+                    <li>Pull requests con revisión de al menos un compañero</li>
+                    <li>Commits pequeños y descriptivos</li>
+                    <li>Reuniones diarias de 5 minutos para sincronizar</li>
+                </ul>`
+            },
+            {
+                title: "Repositorio GitHub",
+                content: `<h2>Paso 5: Configura el repositorio</h2>
+                <pre><code># Un integrante crea el repositorio en GitHub
+# Luego todos clonan localmente
+
+git clone https://github.com/tu-usuario/tu-proyecto.git
+cd tu-proyecto
+
+# Crear la solución y el proyecto
+dotnet new sln -n MiProyecto
+dotnet new webapi -n MiProyecto.Api
+dotnet sln add MiProyecto.Api/MiProyecto.Api.csproj
+
+# Agregar dependencias
+cd MiProyecto.Api
+dotnet add package Microsoft.EntityFrameworkCore
+dotnet add package Microsoft.EntityFrameworkCore.Sqlite
+dotnet add package Microsoft.EntityFrameworkCore.Design
+
+# Commit inicial
+git add .
+git commit -m "chore: configuración inicial del proyecto"
+git push -u origin main</code></pre>
+                <p>Estructura de carpetas recomendada:</p>
+                <pre><code>MiProyecto/
+├── MiProyecto.Api/
+│   ├── Controllers/
+│   ├── Data/
+│   ├── Models/
+│   ├── DTOs/
+│   ├── Migrations/
+│   ├── Program.cs
+│   └── appsettings.json
+├── MiProyecto.sln
+└── README.md</code></pre>`
+            },
+            {
+                title: "Milestones y entregas",
+                content: `<h2>Cronograma del proyecto final</h2>
+                <p>Distribución del trabajo en los 5 días de la semana:</p>
+                <table>
+                    <tr><th>Clase</th><th>Actividad</th><th>Entregable</th></tr>
+                    <tr><td>Clase 16</td><td>Planeación: entidades, endpoints, equipo, GitHub</td><td>Plan escrito + repo creado</td></tr>
+                    <tr><td>Clase 17</td><td>Modelado: clases, DbContext, migraciones, seed</td><td>BD funcional con datos iniciales</td></tr>
+                    <tr><td>Clase 18</td><td>Desarrollo: controladores, DTOs, CRUD, Swagger</td><td>API funcional con todos los endpoints</td></tr>
+                    <tr><td>Clase 19</td><td>Pruebas: Swagger, Thunder, curl, README</td><td>API probada y documentada</td></tr>
+                    <tr><td>Clase 20</td><td>Presentación: demo en vivo, video, cierre</td><td>Proyecto completo presentado</td></tr>
+                </table>
+                <div class="callout callout--error"><strong>⏰ Plazo final:</strong> El proyecto completo debe entregarse al final de la Clase 20. No hay prórrogas.</div>
+                <p>Hitos sugeridos (milestones en GitHub):</p>
+                <ul>
+                    <li><strong>M1 - Base:</strong> Modelos + DbContext + migraciones</li>
+                    <li><strong>M2 - API:</strong> Controladores + CRUD + Swagger</li>
+                    <li><strong>M3 - Entrega:</strong> Pruebas + README + video</li>
+                </ul>`
+            },
+            {
+                title: "Checklist de inicio",
+                content: `<h2>Checklist para hoy — Clase 16</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase debes tener:</strong></div>
+                <table>
+                    <tr><th>#</th><th>Item</th><th>Responsable</th></tr>
+                    <tr><td>1</td><td>Equipo formado (2-4 integrantes)</td><td>Todo el equipo</td></tr>
+                    <tr><td>2</td><td>Idea de proyecto seleccionada</td><td>Todo el equipo</td></tr>
+                    <tr><td>3</td><td>Entidades y relaciones definidas</td><td>Backend 1</td></tr>
+                    <tr><td>4</td><td>Endpoints planificados en tabla</td><td>Backend 2</td></tr>
+                    <tr><td>5</td><td>Mockups de JSON (request/response)</td><td>Backend 2</td></tr>
+                    <tr><td>6</td><td>Repositorio GitHub creado</td><td>Líder técnico</td></tr>
+                    <tr><td>7</td><td>Proyecto ASP.NET Core inicializado</td><td>Líder técnico</td></tr>
+                    <tr><td>8</td><td>Dependencias agregadas (EF, SQLite)</td><td>Líder técnico</td></tr>
+                    <tr><td>9</td><td>Ramas de Git creadas por feature</td><td>Todo el equipo</td></tr>
+                    <tr><td>10</td><td>README.md inicial editado</td><td>Documentador</td></tr>
+                </table>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Cuáles son los objetivos y requisitos del proyecto final</li>
+                    <li>Cómo elegir una idea de proyecto adecuada</li>
+                    <li>Definir entidades, relaciones y endpoints</li>
+                    <li>Crear mockups de request/response JSON</li>
+                    <li>Organizar el equipo y distribuir roles</li>
+                    <li>Configurar el repositorio GitHub con la estructura correcta</li>
+                    <li>Planificar milestones y entregas por clase</li>
+                    <li>Usar el checklist para asegurar el progreso</li>
+                </ul>
+                <div class="callout callout--success"><strong>📌 Próxima clase:</strong> Clase 17 — Modelado y Base de Datos. Trae tus entidades definidas para crear las tablas.</div>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡Manos a la obra!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>

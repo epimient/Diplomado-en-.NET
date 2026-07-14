@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 07 — Encapsulamiento y Propiedades</title>
+    <style>
+        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
+        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
+        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
+        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
+        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
+        .slide-area::-webkit-scrollbar { width: 6px; }
+        .slide-area::-webkit-scrollbar-track { background: transparent; }
+        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
+        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
+        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
+        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
+        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
+        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
+        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
+        .slide tr:last-child td { border-bottom: none; }
+        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
+        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
+        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
+        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
+        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
+        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
+        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
+        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
+        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
+        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
+        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+        .nav-buttons button:hover { opacity: 0.85; }
+        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
+        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
+        .nav-buttons .dot.active { background: var(--cyan); }
+        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar"><h2>Clase 07</h2><ul id="toc"></ul></div>
+    <div class="main">
+        <div class="toolbar"><h1>Encapsulamiento y Propiedades</h1><span class="counter" id="counter">1 / 12</span></div>
+        <div class="slide-area"><div class="slide" id="slide"></div></div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+    </div>
+    <script>
+        const slides = [
+            {
+                title: "Portada",
+                content: `<p class="eyebrow">Módulo 2 · Programación Orientada a Objetos</p>
+                <h1>Encapsulamiento y Propiedades</h1>
+                <p class="subtitle">Protege los datos de tus objetos y controla cómo se accede a ellos con propiedades, getters y setters.</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Clase 07 · Diplomado Programación con .NET</p>
+                <p><span class="tag">Encapsulamiento</span> <span class="tag">Propiedades</span> <span class="tag">get/set</span> <span class="tag">private</span></p>`
+            },
+            {
+                title: "¿Qué es encapsulamiento?",
+                content: `<h2>Encapsulamiento</h2>
+                <p>El <strong>encapsulamiento</strong> es el principio de ocultar los detalles internos de una clase y controlar cómo se accede a ellos.</p>
+                <ul>
+                    <li>Los campos (atributos) deben ser <strong>privados</strong> (<code>private</code>)</li>
+                    <li>El acceso se hace mediante <strong>propiedades</strong> (<code>get</code>/<code>set</code>) o métodos públicos</li>
+                    <li>Podemos <strong>validar</strong> datos antes de asignarlos</li>
+                    <li>Podemos <strong>proteger</strong> el estado interno del objeto</li>
+                </ul>
+                <div class="comparison">
+                    <div>
+                        <h4>Sin encapsulamiento ❌</h4>
+                        <code>public int edad;<br>p.edad = -5; // Inválido!</code>
+                    </div>
+                    <div>
+                        <h4>Con encapsulamiento ✅</h4>
+                        <code>private int edad;<br>p.Edad = -5; // Validación evita error</code>
+                    </div>
+                </div>`
+            },
+            {
+                title: "Modificadores de acceso",
+                content: `<h2>Modificadores de acceso</h2>
+                <p>Controlan qué partes del programa pueden ver y usar los miembros de una clase.</p>
+                <table>
+                    <tr><th>Modificador</th><th>Acceso desde</th></tr>
+                    <tr><td><code>public</code></td><td>Cualquier clase (totalmente accesible)</td></tr>
+                    <tr><td><code>private</code></td><td>Solo la misma clase (nadie más)</td></tr>
+                    <tr><td><code>protected</code></td><td>La misma clase y clases derivadas (herencia)</td></tr>
+                    <tr><td><code>internal</code></td><td>Solo el mismo proyecto (assembly)</td></tr>
+                </table>
+                <pre><code>public class CuentaBancaria
+{
+    public string titular;       // Todos pueden leer/escribir
+    private double saldo;        // Solo esta clase accede
+    protected string numeroCuenta; // Esta clase + herederas
+
+    public void MostrarSaldo()
+    {
+        // ✅ Acceso permitido (misma clase)
+        Console.WriteLine($"Saldo: {saldo:C}");
+    }
+}
+
+// Desde otra clase:
+// cuenta.saldo = 500;  // ❌ Error: 'saldo' es private</code></pre>`
+            },
+            {
+                title: "Propiedades (get/set)",
+                content: `<h2>Propiedades en C#</h2>
+                <p>Una <strong>propiedad</strong> es un miembro que combina un campo privado con métodos de acceso (<code>get</code> y <code>set</code>).</p>
+                <h3>Sintaxis completa</h3>
+                <pre><code>public class Persona
+{
+    private string nombre;  // Campo privado (backing field)
+
+    public string Nombre    // Propiedad pública
+    {
+        get { return nombre; }
+        set { nombre = value; }
+    }
+}</code></pre>
+                <h3>Sintaxis auto-implementada (C# 3+)</h3>
+                <pre><code>public class Persona
+{
+    public string Nombre { get; set; }
+    public int Edad { get; set; }
+}
+
+// Uso:
+Persona p = new Persona();
+p.Nombre = "Ana";  // set
+Console.WriteLine(p.Nombre);  // get</code></pre>
+                <div class="callout callout--success"><strong>💡 <code>value</code> es una palabra clave contextual que representa el valor que se asigna en el setter.</strong></div>`
+            },
+            {
+                title: "Propiedades con validación",
+                content: `<h2>Propiedades con lógica de validación</h2>
+                <p>La gran ventaja del encapsulamiento: podemos validar antes de asignar.</p>
+                <pre><code>public class CuentaBancaria
+{
+    private double saldo;
+
+    public double Saldo
+    {
+        get { return saldo; }
+    }
+
+    public void Depositar(double monto)
+    {
+        if (monto <= 0)
+        {
+            Console.WriteLine("❌ El monto debe ser positivo");
+            return;
+        }
+        saldo += monto;
+        Console.WriteLine($"✅ Depositados {monto:C}. Saldo: {saldo:C}");
+    }
+
+    public bool Retirar(double monto)
+    {
+        if (monto <= 0)
+        {
+            Console.WriteLine("❌ Monto inválido");
+            return false;
+        }
+        if (monto > saldo)
+        {
+            Console.WriteLine("❌ Saldo insuficiente");
+            return false;
+        }
+        saldo -= monto;
+        Console.WriteLine($"✅ Retirados {monto:C}. Saldo: {saldo:C}");
+        return true;
+    }
+}</code></pre>`
+            },
+            {
+                title: "Propiedades de solo lectura",
+                content: `<h2>Propiedades de solo lectura y solo escritura</h2>
+                <p>Podemos restringir el acceso:</p>
+                <table>
+                    <tr><th>Tipo</th><th>Código</th><th>Comportamiento</th></tr>
+                    <tr><td>Lectura/escritura</td><td><code>{ get; set; }</code></td><td>Se puede leer y escribir</td></tr>
+                    <tr><td>Solo lectura</td><td><code>{ get; }</code></td><td>Solo se puede leer (init en constructor)</td></tr>
+                    <tr><td>Privado set</td><td><code>{ get; private set; }</code></td><td>Público para leer, privado para escribir</td></tr>
+                </table>
+                <pre><code>public class Producto
+{
+    public string Codigo { get; }           // Solo lectura
+    public string Nombre { get; set; }      // Lectura/escritura
+    public double Precio { get; private set; } // Lectura pública, escritura privada
+
+    public Producto(string codigo, string nombre, double precio)
+    {
+        Codigo = codigo;          // ✅ Se puede asignar en constructor
+        Nombre = nombre;
+        Precio = precio;
+    }
+
+    public void ActualizarPrecio(double nuevoPrecio)
+    {
+        if (nuevoPrecio > 0)
+            Precio = nuevoPrecio;  // ✅ Escritura desde dentro
+    }
+}
+
+// Uso:
+var p = new Producto("P001", "Laptop", 999.99);
+// p.Codigo = "X";  // ❌ Error: propiedad de solo lectura
+// p.Precio = 500;  // ❌ Error: setter privado</code></pre>`
+            },
+            {
+                title: "Propiedades calculadas",
+                content: `<h2>Propiedades calculadas (solo get)</h2>
+                <p>No necesitan un campo de respaldo. Se calculan en tiempo real:</p>
+                <pre><code>public class Rectangulo
+{
+    public double Ancho { get; set; }
+    public double Alto { get; set; }
+
+    // Propiedad calculada (solo get)
+    public double Area
+    {
+        get { return Ancho * Alto; }
+    }
+
+    // Propiedad calculada con expresión corporal (C# 6+)
+    public double Perimetro => 2 * (Ancho + Alto);
+
+    public Rectangulo(double ancho, double alto)
+    {
+        Ancho = ancho;
+        Alto = alto;
+    }
+}
+
+// Uso:
+var r = new Rectangulo(10, 5);
+Console.WriteLine($"Área: {r.Area}");       // 50
+Console.WriteLine($"Perímetro: {r.Perimetro}");  // 30
+
+// r.Area = 100;  // ❌ Error: no tiene setter</code></pre>
+                <div class="callout callout--info"><strong>💡 Las propiedades calculadas son ideales para valores derivados de otros datos. Siempre están actualizadas.</strong></div>`
+            },
+            {
+                title: "Propiedades con expresión corporal",
+                content: `<h2>Sintaxis compacta (expression-bodied)</h2>
+                <p>Desde C# 6, podemos usar <code>=></code> para propiedades de solo lectura:</p>
+                <pre><code>public class Empleado
+{
+    public string Nombre { get; set; }
+    public double SalarioBase { get; set; }
+    public double Bono { get; set; }
+
+    // Property expression-bodied
+    public double SalarioTotal => SalarioBase + Bono;
+
+    // También para métodos
+    public void MostrarInfo() =>
+        Console.WriteLine($"{Nombre}: ${SalarioTotal:F2}");
+}
+
+// Uso:
+var emp = new Empleado
+{
+    Nombre = "Ana López",
+    SalarioBase = 3000,
+    Bono = 500
+};
+
+Console.WriteLine($"Total: {emp.SalarioTotal:C}");  // $3,500.00</code></pre>`
+            },
+            {
+                title: "Propiedades init (C# 9+)",
+                content: `<h2>Propiedades con init (C# 9+)</h2>
+                <p><code>init</code> permite asignar valor <strong>solo durante la inicialización</strong> (constructor o inicializador de objetos).</p>
+                <pre><code>public class Usuario
+{
+    public string Email { get; init; }
+    public string nombre;
+    public string nombreCompleto;
+
+    public Usuario(string nombreCompleto)
+    {
+        this.nombreCompleto = nombreCompleto;
+    }
+}
+
+// Uso:
+var usuario = new Usuario("Ana López")
+{
+    Email = "ana@email.com"   // ✅ Init: permitido aquí
+};
+
+// usuario.Email = "otro@email.com";  // ❌ Error: propiedad init solo en inicialización</code></pre>
+                <div class="callout callout--warning"><strong>⚠️ <code>init</code> es ideal para propiedades que no deben cambiar después de crear el objeto (inmutable).</strong></div>`
+            },
+            {
+                title: "Buenas prácticas",
+                content: `<h2>Buenas prácticas de encapsulamiento</h2>
+                <table>
+                    <tr><th>Práctica</th><th>✅ Correcto</th><th>❌ Incorrecto</th></tr>
+                    <tr><td>Campos privados por defecto</td><td><code>private double saldo;</code></td><td><code>public double saldo;</code></td></tr>
+                    <tr><td>Propiedades públicas</td><td><code>public double Saldo { get; }</code></td><td>Métodos GetSaldo() / SetSaldo() (Java style)</td></tr>
+                    <tr><td>Validar en setters</td><td>if-else con value</td><td>Permitir cualquier valor</td></tr>
+                    <tr><td>Propiedades auto-implementadas</td><td><code>{ get; set; }</code></td><td>Backing field manual innecesario</td></tr>
+                    <tr><td>Usar init para datos inmutables</td><td><code>{ get; init; }</code></td><td>Setters públicos en datos que no cambian</td></tr>
+                </table>
+                <pre><code>// ✅ Diseño encapsulado moderno
+public class Cliente
+{
+    public string Nombre { get; set; }
+    public string Email { get; init; }
+    public decimal Saldo { get; private set; }
+}</code></pre>`
+            },
+            {
+                title: "Ejemplo completo",
+                content: `<h2>Ejemplo completo: Sistema de Cuentas</h2>
+                <pre><code>public class CuentaBancaria
+{
+    public string Titular { get; init; }
+    public string NumeroCuenta { get; }
+    private decimal saldo;
+
+    public decimal Saldo => saldo;
+
+    public CuentaBancaria(string titular, string numeroCuenta, decimal depositoInicial = 0)
+    {
+        Titular = titular;
+        NumeroCuenta = numeroCuenta;
+        saldo = depositoInicial;
+    }
+
+    public void Depositar(decimal monto)
+    {
+        if (monto <= 0) throw new ArgumentException("El monto debe ser positivo");
+        saldo += monto;
+        Console.WriteLine($"Depósito: {monto:C}. Nuevo saldo: {saldo:C}");
+    }
+
+    public bool Retirar(decimal monto)
+    {
+        if (monto <= 0 || monto > saldo) return false;
+        saldo -= monto;
+        Console.WriteLine($"Retiro: {monto:C}. Nuevo saldo: {saldo:C}");
+        return true;
+    }
+
+    public void MostrarInfo()
+    {
+        Console.WriteLine($"Titular: {Titular}");
+        Console.WriteLine($"Cuenta: {NumeroCuenta}");
+        Console.WriteLine($"Saldo: {Saldo:C}\n");
+    }
+}</code></pre>`
+            },
+            {
+                title: "Resumen",
+                content: `<h2>Resumen de la clase</h2>
+                <div class="callout callout--success"><strong>✅ Al finalizar esta clase sabes:</strong></div>
+                <ul>
+                    <li>Qué es el encapsulamiento y por qué es importante</li>
+                    <li>Modificadores de acceso: <code>public</code>, <code>private</code>, <code>protected</code>, <code>internal</code></li>
+                    <li>Propiedades con <code>get</code> y <code>set</code></li>
+                    <li>Propiedades auto-implementadas <code>{ get; set; }</code></li>
+                    <li>Propiedades de solo lectura <code>{ get; }</code> y <code>init</code></li>
+                    <li>Propiedades calculadas (sin backing field)</li>
+                    <li>Expression-bodied members con <code>=></code></li>
+                    <li>Validar datos antes de asignar</li>
+                </ul>
+                <p style="color:var(--green);font-size:1.1rem;margin-top:1rem;">¡Protege tus datos!</p>`
+            }
+        ];
+
+        let current = 0;
+        const slideEl = document.getElementById('slide');
+        const counterEl = document.getElementById('counter');
+        const tocEl = document.getElementById('toc');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        function renderSlide() {
+            slideEl.innerHTML = slides[current].content;
+            counterEl.textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === slides.length - 1;
+            document.querySelectorAll('.sidebar li').forEach((li, i) => li.classList.toggle('active', i === current));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function nextSlide() { if (current < slides.length - 1) { current++; renderSlide(); } }
+        function prevSlide() { if (current > 0) { current--; renderSlide(); } }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        slides.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.title;
+            li.onclick = () => { current = i; renderSlide(); };
+            tocEl.appendChild(li);
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.onclick = () => { current = i; renderSlide(); };
+            dotsContainer.appendChild(dot);
+        });
+
+        renderSlide();
+    </script>
+</body>
+</html>
