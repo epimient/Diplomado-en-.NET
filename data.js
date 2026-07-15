@@ -65,6 +65,19 @@ const UNITS = [
   }
 ];
 
+const EXERCISES = [
+  { id: '01', title: 'Validador Luhn', module: 'Fundamentos C#', desc: 'App de consola que valida tarjetas con algoritmo de Luhn. Strings, ciclos, metodos.', dir: 'diplomado-ejercicios/ejercicio-01-luhn', icon: 'N1' },
+  { id: '02', title: 'Sistema Tareas POO', module: 'POO con C#', desc: 'Gestion de tareas con herencia, interfaces, polimorfismo y persistencia JSON.', dir: 'diplomado-ejercicios/ejercicio-02-poo', icon: 'N2' },
+  { id: '03', title: 'API Clima + IA', module: 'ASP.NET Core', desc: 'API REST con EF Core, SQLite, consumo de API externa y analisis con Groq.', dir: 'diplomado-ejercicios/ejercicio-03-clima-api', icon: 'N3' }
+];
+
+const PROJECT_INFO = {
+  title: 'Proyecto Final Integrador',
+  desc: 'API REST con IA que resuelve una problematica real alineada a los ODS. Grupos de 4 con roles definidos.',
+  icon: 'N4',
+  dir: 'proyecto-final'
+};
+
 const RESOURCES = [
   { title: '.NET SDK 8.0', url: 'https://dotnet.microsoft.com/download/dotnet/8.0' },
   { title: 'Documentación C#', url: 'https://learn.microsoft.com/dotnet/csharp/' },

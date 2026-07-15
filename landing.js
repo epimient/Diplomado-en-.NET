@@ -25,6 +25,8 @@ function uColor(u) { return `var(--${u.color})`; }
 /* === SIDEBAR === */
 function buildSidebar() {
   let html = '';
+
+  // Unidades
   UNITS.forEach(u => {
     html += `<details class="tree-unit" open><summary><span class="dot" style="background:${uColor(u)}"></span>${u.title}</summary>`;
     u.classes.forEach(c => {
@@ -38,6 +40,24 @@ function buildSidebar() {
     });
     html += `</details>`;
   });
+
+  // Separador
+  html += `<div class="sidebar-divider"></div>`;
+
+  // Evaluacion
+  html += `<div class="tree-item tree-item--special" onclick="showLanding();setTimeout(()=>document.getElementById('eval-section')?.scrollIntoView({behavior:'smooth'}),50)"><span class="num">E</span><span>Evaluacion</span></div>`;
+
+  // Ejercicios
+  html += `<details class="tree-unit" open><summary><span class="dot" style="background:var(--orange)"></span>Ejercicios Formativos</summary>`;
+  EXERCISES.forEach(e => {
+    html += `<div class="tree-item" onclick="navigateToExercise('${e.id}')">`;
+    html += `<span class="num">${e.icon}</span><span>${e.title}</span></div>`;
+  });
+  html += `</details>`;
+
+  // Proyecto Final
+  html += `<div class="tree-item tree-item--special" onclick="navigateToProject()"><span class="num">PF</span><span>Proyecto Final</span></div>`;
+
   sidebarNav.innerHTML = html;
 }
 
@@ -55,6 +75,52 @@ function highlightSidebar(cls, action) {
 }
 
 sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('hidden'));
+
+/* === EXERCISE & PROJECT VIEWS === */
+function navigateToExercise(id) {
+  sidebar.classList.remove('hidden');
+  const ex = EXERCISES.find(e => e.id === id);
+  if (!ex) return;
+
+  history.replaceState(null, '', `#/ejercicio-${id}`);
+  document.querySelectorAll('.tree-item, .tree-subs').forEach(el => el.classList.remove('active'));
+  showMarkdownView();
+  pathIndicator.textContent = `Ejercicios / ${ex.title}`;
+  mdToolbar.innerHTML = `<a href="#/" onclick="event.preventDefault();showLanding()">← Volver</a><span class="sep">/</span><span>Ejercicios</span><span class="sep">/</span><span>${ex.title}</span>`;
+
+  fetch(`${ex.dir}/README.md`)
+    .then(res => { if (!res.ok) throw new Error(); return res.text(); })
+    .then(md => {
+      let html = preprocessMarkdown(md);
+      html = marked.parse(html, { breaks: true, gfm: true });
+      mdContent.innerHTML = html;
+      mdContent.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+    })
+    .catch(() => {
+      mdContent.innerHTML = `<div class="callout--error" style="padding:1rem;margin-top:1rem"><p>No se pudo cargar el enunciado del ejercicio.</p></div>`;
+    });
+}
+
+function navigateToProject() {
+  sidebar.classList.remove('hidden');
+  history.replaceState(null, '', `#/proyecto`);
+  document.querySelectorAll('.tree-item, .tree-subs').forEach(el => el.classList.remove('active'));
+  showMarkdownView();
+  pathIndicator.textContent = `Proyecto Final`;
+  mdToolbar.innerHTML = `<a href="#/" onclick="event.preventDefault();showLanding()">← Volver</a><span class="sep">/</span><span>Proyecto Final</span>`;
+
+  fetch(`proyecto-final-guia.md`)
+    .then(res => { if (!res.ok) throw new Error(); return res.text(); })
+    .then(md => {
+      let html = preprocessMarkdown(md);
+      html = marked.parse(html, { breaks: true, gfm: true });
+      mdContent.innerHTML = html;
+      mdContent.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+    })
+    .catch(() => {
+      mdContent.innerHTML = `<div class="callout--error" style="padding:1rem;margin-top:1rem"><p>No se pudo cargar la guia del proyecto final.</p></div>`;
+    });
+}
 
 /* === NAVIGATION === */
 function navigateTo(cls, action) {
@@ -81,7 +147,6 @@ function navigateTo(cls, action) {
     const filePath = FILES[action].replace('{id}', cls);
     const fullPath = `${classData.dir}/${filePath}`;
 
-    // Build toolbar
     let toolbarHtml = `<a href="#/" onclick="event.preventDefault();showLanding()">← Volver</a><span class="sep">/</span>`;
     toolbarHtml += `<span>${unit.title}</span><span class="sep">/</span>`;
     toolbarHtml += `<span>${classData.title}</span>`;
@@ -94,7 +159,6 @@ function navigateTo(cls, action) {
     });
     mdToolbar.innerHTML = toolbarHtml;
 
-    // Fetch and render markdown
     fetch(fullPath)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -107,7 +171,7 @@ function navigateTo(cls, action) {
         mdContent.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
       })
       .catch(() => {
-        mdContent.innerHTML = `<div class="callout--error" style="padding:1rem;margin-top:1rem"><p>No se pudo cargar el documento. El archivo podría no existir aún.</p></div>`;
+        mdContent.innerHTML = `<div class="callout--error" style="padding:1rem;margin-top:1rem"><p>No se pudo cargar el documento. El archivo podria no existir aun.</p></div>`;
       });
   }
 
@@ -158,12 +222,12 @@ function renderLanding() {
 
   // Hero
   html += `<section class="hero">`;
-  html += `<div class="hero__badge">Curso práctico · .NET 8 LTS</div>`;
+  html += `<div class="hero__badge">Curso practico · .NET 8 LTS</div>`;
   html += `<h1 class="hero__title">${TITLE}</h1>`;
   html += `<p class="hero__subtitle">${SUBTITLE}</p>`;
   html += `<p class="hero__desc">${DESCRIPTION}</p>`;
   html += `<div class="hero-stats">`;
-  html += `<div class="hero-stats__item"><div class="hero-stats__num">${UNITS.length}</div><div class="hero-stats__label">Módulos</div></div>`;
+  html += `<div class="hero-stats__item"><div class="hero-stats__num">${UNITS.length}</div><div class="hero-stats__label">Modulos</div></div>`;
   const totalClasses = UNITS.reduce((s, u) => s + u.classes.length, 0);
   html += `<div class="hero-stats__item"><div class="hero-stats__num">${totalClasses}</div><div class="hero-stats__label">Clases</div></div>`;
   html += `<div class="hero-stats__item"><div class="hero-stats__num">4</div><div class="hero-stats__label">Semanas</div></div>`;
@@ -173,7 +237,7 @@ function renderLanding() {
   html += `<div class="units-grid">`;
   UNITS.forEach(u => {
     html += `<div class="unit-card ${u.id}" onclick="navigateTo('${u.classes[0].id}','doc')">`;
-    html += `<div class="unit-card__num">${u.id.replace('u', 'Mód. ')}</div>`;
+    html += `<div class="unit-card__num">${u.id.replace('u', 'Mod. ')}</div>`;
     html += `<div class="unit-card__title">${u.title}</div>`;
     html += `<div class="unit-card__desc">${u.desc}</div>`;
     html += `<div class="unit-card__tags">`;
@@ -182,6 +246,78 @@ function renderLanding() {
     html += `</div></div>`;
   });
   html += `</div>`;
+
+  // Evaluacion
+  html += `<section class="section" id="eval-section">`;
+  html += `<h2 class="section__title">Evaluacion</h2>`;
+  html += `<p class="section__desc">El curso tiene <strong>4 notas</strong>. La nota final se compone de 50% formativa (promedio de 3 ejercicios) y 50% cognitiva (proyecto final grupal).</p>`;
+  html += `<div class="eval-table-wrap"><table class="eval-table">`;
+  html += `<tr><th>Nota</th><th>Tipo</th><th>Peso</th><th>Que evalua</th><th>Cuando</th></tr>`;
+  html += `<tr><td><span class="eval-badge eval-badge--n1">N1</span></td><td>Formativa</td><td>16.66%</td><td>Validador Luhn</td><td>Domingo semana 1</td></tr>`;
+  html += `<tr><td><span class="eval-badge eval-badge--n2">N2</span></td><td>Formativa</td><td>16.66%</td><td>Sistema Tareas POO</td><td>Domingo semana 2</td></tr>`;
+  html += `<tr><td><span class="eval-badge eval-badge--n3">N3</span></td><td>Formativa</td><td>16.66%</td><td>API Clima + IA</td><td>Domingo semana 3</td></tr>`;
+  html += `<tr><td><span class="eval-badge eval-badge--n4">N4</span></td><td>Cognitiva</td><td>50%</td><td>Proyecto Final grupal</td><td>Semana 4</td></tr>`;
+  html += `</table></div>`;
+  html += `<div class="eval-formula"><strong>Formula:</strong> ((N1 + N2 + N3) / 3) x 0.5 + N4 x 0.5</div>`;
+  html += `<div class="eval-policy"><h3>Politica de entregas</h3><ul>`;
+  html += `<li>Fecha limite: domingos 11:59 PM</li>`;
+  html += `<li>Retraso: 50% de penalizacion sobre la nota</li>`;
+  html += `<li>No compila con dotnet build: nota maxima 3.0</li>`;
+  html += `<li>Copia entre companeros: 0 automatico</li>`;
+  html += `</ul></div>`;
+  html += `</section>`;
+
+  // Ejercicios Formativos
+  html += `<section class="section">`;
+  html += `<h2 class="section__title">Ejercicios Formativos</h2>`;
+  html += `<p class="section__desc">Tres ejercicios entregables al final de cada modulo. Solo enunciado — cada estudiante crea su proyecto desde cero.</p>`;
+  html += `<div class="ex-grid">`;
+  EXERCISES.forEach(e => {
+    html += `<div class="ex-card" onclick="navigateToExercise('${e.id}')">`;
+    html += `<div class="ex-card__badge ex-card__badge--${e.id}">${e.icon}</div>`;
+    html += `<div class="ex-card__title">${e.title}</div>`;
+    html += `<div class="ex-card__module">${e.module}</div>`;
+    html += `<div class="ex-card__desc">${e.desc}</div>`;
+    html += `</div>`;
+  });
+  html += `</div>`;
+  html += `</section>`;
+
+  // Proyecto Final
+  html += `<section class="section">`;
+  html += `<h2 class="section__title">Proyecto Final</h2>`;
+  html += `<p class="section__desc">${PROJECT_INFO.desc}</p>`;
+  html += `<div class="project-section">`;
+  html += `<div class="project-block"><h3>Roles del equipo (4 personas)</h3><ul>`;
+  html += `<li><strong>Backend / TL</strong> — Arquitectura, modelos, DbContext, endpoints</li>`;
+  html += `<li><strong>API / IA</strong> — Integracion Groq, HttpClient, prompt engineering</li>`;
+  html += `<li><strong>BD / DTOs</strong> — Validaciones, DTOs, LINQ, seed data, filtros</li>`;
+  html += `<li><strong>Docs / QA</strong> — README, Swagger, capturas, tests valido/invalido</li>`;
+  html += `</ul></div>`;
+  html += `<div class="project-block"><h3>Check-ins obligatorios</h3><ul>`;
+  html += `<li><strong>Check-in 1:</strong> Modelos, DbContext, migracion, 1 endpoint funcional</li>`;
+  html += `<li><strong>Check-in 2:</strong> CRUD completo, IA integrada, Swagger funcionando</li>`;
+  html += `<li>Penalizacion: -0.2 por cada check-in sin avance real (max -0.4)</li>`;
+  html += `</ul></div>`;
+  html += `<div class="project-block"><h3>Entregables</h3><ul>`;
+  html += `<li>API REST funcional (CRUD + BD + IA)</li>`;
+  html += `<li>Swagger con capturas (1 valido + 1 invalido por endpoint)</li>`;
+  html += `<li>README.md profesional</li>`;
+  html += `<li>Repositorio en GitHub</li>`;
+  html += `</ul></div>`;
+  html += `<div class="project-block"><h3>Problematicas sugeridas (ODS)</h3><div class="ods-grid">`;
+  html += `<div class="ods-item"><span class="ods-code">ODS 11</span> Clasificador de quejas ciudadanas con IA</div>`;
+  html += `<div class="ods-item"><span class="ods-code">ODS 4</span> Match tutor-estudiante vulnerable</div>`;
+  html += `<div class="ods-item"><span class="ods-code">ODS 12</span> Eco-puntos: clasificador de residuos</div>`;
+  html += `<div class="ods-item"><span class="ods-code">ODS 2</span> Reduccion desperdicio alimenticio</div>`;
+  html += `<div class="ods-item"><span class="ods-code">ODS 2</span> Deteccion de plagas en cultivos</div>`;
+  html += `<div class="ods-item"><span class="ods-code">ODS 11</span> Monitoreo de calidad del aire</div>`;
+  html += `<div class="ods-item"><span class="ods-code">ODS 8</span> Marketplace local agricultor-consumidor</div>`;
+  html += `<div class="ods-item"><span class="ods-code">—</span> Propio (validado con instructor)</div>`;
+  html += `</div></div>`;
+  html += `<div style="margin-top:1rem"><a class="project-cta" href="#/proyecto" onclick="event.preventDefault();navigateToProject()">Ver guia completa del proyecto →</a></div>`;
+  html += `</div>`;
+  html += `</section>`;
 
   // Resources
   html += `<section class="resources"><h2>Recursos</h2><div class="resources-grid">`;
@@ -199,9 +335,18 @@ function handleHash() {
   const match = location.hash.match(/^#\/clase-(\d+)\/(\w+)$/);
   if (match) {
     navigateTo(match[1], match[2]);
-  } else {
-    showLanding();
+    return;
   }
+  const exMatch = location.hash.match(/^#\/ejercicio-(\d+)$/);
+  if (exMatch) {
+    navigateToExercise(exMatch[1]);
+    return;
+  }
+  if (location.hash === '#/proyecto') {
+    navigateToProject();
+    return;
+  }
+  showLanding();
 }
 
 window.addEventListener('hashchange', handleHash);
