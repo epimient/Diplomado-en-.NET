@@ -1,73 +1,429 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clase 04 — Ciclos</title>
     <style>
-        :root { --bg-base: #1a1b2e; --bg-panel: #24283b; --bg-hover: #2f3346; --text: #c0caf5; --text-muted: #565f89; --cyan: #7dcfff; --blue: #7aa2f7; --purple: #9d7cd8; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --border: #3b4261; --code-bg: #1f2335; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 260px; background: rgba(36,40,59,0.35); backdrop-filter: blur(14px); padding: 1.5rem; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
-        .sidebar::-webkit-scrollbar { width: 6px; }
-        .sidebar::-webkit-scrollbar-track { background: transparent; }
-        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        .sidebar h2 { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; font-weight: 600; }
-        .sidebar ul { list-style: none; }
-        .sidebar li { padding: 0.45rem 0.75rem; margin-bottom: 0.2rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s, color 0.15s; }
-        .sidebar li:hover { background: var(--bg-hover); color: var(--blue); }
-        .sidebar li.active { background: rgba(122,162,247,0.15); color: var(--blue); font-weight: 500; }
-        .main { flex: 1; display: flex; flex-direction: column; }
-        .toolbar { padding: 0.75rem 2rem; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 48px; }
-        .toolbar h1 { font-size: 0.95rem; color: var(--cyan); font-weight: 600; }
-        .toolbar .counter { color: var(--text-muted); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
-        .slide-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; }
-        .slide-area::-webkit-scrollbar { width: 6px; }
-        .slide-area::-webkit-scrollbar-track { background: transparent; }
-        .slide-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        .slide { max-width: 900px; width: 100%; animation: fadeSlide 0.3s ease; }
-        @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        .slide h1 { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
-        .slide h2 { font-size: 1.5rem; font-weight: 600; color: var(--cyan); margin-bottom: 1rem; line-height: 1.2; }
-        .slide h3 { font-size: 1.05rem; font-weight: 600; color: var(--blue); margin-bottom: 0.6rem; }
-        .slide p { font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.75rem; }
-        .slide ul, .slide ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
-        .slide li { font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.35rem; }
-        .slide pre { background: var(--code-bg); padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.75rem; border-left: 3px solid var(--blue); font-size: 0.85rem; line-height: 1.5; }
-        .slide code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.85rem; }
-        .slide pre code { background: none; padding: 0; font-size: 0.85rem; }
-        .slide table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
-        .slide th, .slide td { padding: 0.55rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .slide th { color: var(--cyan); font-weight: 600; background: rgba(125,207,255,0.04); }
-        .slide tr:last-child td { border-bottom: none; }
-        .slide .eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--purple); margin-bottom: 0.5rem; }
-        .slide .subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
-        .slide .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; background: rgba(122,162,247,0.12); color: var(--blue); margin-right: 0.3rem; margin-bottom: 0.3rem; font-weight: 500; }
-        .slide .callout { padding: 0.7rem 1rem; margin-bottom: 0.75rem; border-radius: 6px; border-left: 4px solid var(--blue); background: rgba(122,162,247,0.06); font-size: 0.88rem; line-height: 1.6; }
-        .slide .callout--success { border-left-color: var(--green); background: rgba(158,206,106,0.06); }
-        .slide .callout--warning { border-left-color: var(--orange); background: rgba(255,158,100,0.06); }
-        .slide .callout--error { border-left-color: var(--red); background: rgba(247,118,142,0.06); }
-        .slide .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
-        .slide .comparison > div { padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
-        .slide .comparison > div:first-child { border-left: 3px solid var(--red); }
-        .slide .comparison > div:last-child { border-left: 3px solid var(--green); }
-        .slide .comparison h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 0.4rem; }
-        .slide .comparison p, .slide .comparison code { font-size: 0.82rem; }
-        .nav-buttons { padding: 0.7rem 2rem; display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: rgba(36,40,59,0.7); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
-        .nav-buttons button { background: var(--blue); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
-        .nav-buttons button:hover { opacity: 0.85; }
-        .nav-buttons button:disabled { opacity: 0.3; cursor: default; }
-        .nav-buttons .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; display: inline-block; margin: 0 0.2rem; }
-        .nav-buttons .dot.active { background: var(--cyan); }
-        @media (max-width: 768px) { .sidebar { width: 200px; padding: 1rem; } .slide { padding: 0.5rem; } .slide h1 { font-size: 1.8rem; } .slide h2 { font-size: 1.2rem; } .slide-area { padding: 1rem; } .comparison { grid-template-columns: 1fr; } }
+        :root {
+            --bg-base: #1a1b2e;
+            --bg-panel: #24283b;
+            --bg-hover: #2f3346;
+            --text: #c0caf5;
+            --text-muted: #565f89;
+            --cyan: #7dcfff;
+            --blue: #7aa2f7;
+            --purple: #9d7cd8;
+            --green: #9ece6a;
+            --orange: #ff9e64;
+            --red: #f7768e;
+            --border: #3b4261;
+            --code-bg: #1f2335;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-base);
+            color: var(--text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: rgba(36, 40, 59, 0.35);
+            backdrop-filter: blur(14px);
+            padding: 1.5rem;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .sidebar h2 {
+            color: var(--cyan);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            padding: 0.45rem 0.75rem;
+            margin-bottom: 0.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .sidebar li:hover {
+            background: var(--bg-hover);
+            color: var(--blue);
+        }
+
+        .sidebar li.active {
+            background: rgba(122, 162, 247, 0.15);
+            color: var(--blue);
+            font-weight: 500;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toolbar {
+            padding: 0.75rem 2rem;
+            background: rgba(36, 40, 59, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            min-height: 48px;
+        }
+
+        .toolbar h1 {
+            font-size: 0.95rem;
+            color: var(--cyan);
+            font-weight: 600;
+        }
+
+        .toolbar .counter {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .slide-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .slide-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .slide-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .slide-area::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .slide {
+            max-width: 900px;
+            width: 100%;
+            animation: fadeSlide 0.3s ease;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .slide h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--cyan);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .slide h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--blue);
+            margin-bottom: 0.6rem;
+        }
+
+        .slide p {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 0.75rem;
+        }
+
+        .slide ul,
+        .slide ol {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+        }
+
+        .slide li {
+            font-size: 0.95rem;
+            line-height: 1.65;
+            margin-bottom: 0.35rem;
+        }
+
+        .slide pre {
+            background: var(--code-bg);
+            padding: 0.85rem 1.1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 0.75rem;
+            border-left: 3px solid var(--blue);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .slide code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+        }
+
+        .slide pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.85rem;
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .slide th,
+        .slide td {
+            padding: 0.55rem 0.85rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .slide th {
+            color: var(--cyan);
+            font-weight: 600;
+            background: rgba(125, 207, 255, 0.04);
+        }
+
+        .slide tr:last-child td {
+            border-bottom: none;
+        }
+
+        .slide .eyebrow {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+            color: var(--purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .slide .subtitle {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .slide .tag {
+            display: inline-block;
+            font-size: 0.72rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 4px;
+            background: rgba(122, 162, 247, 0.12);
+            color: var(--blue);
+            margin-right: 0.3rem;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+        }
+
+        .slide .callout {
+            padding: 0.7rem 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 6px;
+            border-left: 4px solid var(--blue);
+            background: rgba(122, 162, 247, 0.06);
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .slide .callout--success {
+            border-left-color: var(--green);
+            background: rgba(158, 206, 106, 0.06);
+        }
+
+        .slide .callout--warning {
+            border-left-color: var(--orange);
+            background: rgba(255, 158, 100, 0.06);
+        }
+
+        .slide .callout--error {
+            border-left-color: var(--red);
+            background: rgba(247, 118, 142, 0.06);
+        }
+
+        .slide .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .slide .comparison>div {
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .slide .comparison>div:first-child {
+            border-left: 3px solid var(--red);
+        }
+
+        .slide .comparison>div:last-child {
+            border-left: 3px solid var(--green);
+        }
+
+        .slide .comparison h4 {
+            font-size: 0.85rem;
+            color: var(--text);
+            margin-bottom: 0.4rem;
+        }
+
+        .slide .comparison p,
+        .slide .comparison code {
+            font-size: 0.82rem;
+        }
+
+        .nav-buttons {
+            padding: 0.7rem 2rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            align-items: center;
+            background: rgba(36, 40, 59, 0.7);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-buttons button {
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .nav-buttons button:hover {
+            opacity: 0.85;
+        }
+
+        .nav-buttons button:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .nav-buttons .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-block;
+            margin: 0 0.2rem;
+        }
+
+        .nav-buttons .dot.active {
+            background: var(--cyan);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+                padding: 1rem;
+            }
+
+            .slide {
+                padding: 0.5rem;
+            }
+
+            .slide h1 {
+                font-size: 1.8rem;
+            }
+
+            .slide h2 {
+                font-size: 1.2rem;
+            }
+
+            .slide-area {
+                padding: 1rem;
+            }
+
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
+
 <body>
-    <div class="sidebar"><h2>Clase 04</h2><ul id="toc"></ul></div>
+    <div class="sidebar">
+        <h2>Clase 04</h2>
+        <ul id="toc"></ul>
+    </div>
     <div class="main">
-        <div class="toolbar"><h1>Ciclos (for, while, do-while, foreach)</h1><span class="counter" id="counter">1 / 12</span></div>
-        <div class="slide-area"><div class="slide" id="slide"></div></div>
-        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
+        <div class="toolbar">
+            <h1>Ciclos (for, while, do-while, foreach)</h1><span class="counter" id="counter">1 / 12</span>
+        </div>
+        <div class="slide-area">
+            <div class="slide" id="slide"></div>
+        </div>
+        <div class="nav-buttons"><button id="prevBtn" onclick="prevSlide()">◀ Anterior</button><span
+                id="dotsContainer"></span><button id="nextBtn" onclick="nextSlide()">Siguiente ▶</button></div>
     </div>
     <script>
         const slides = [
@@ -359,7 +715,7 @@ do
 
     if (intento == numeroSecreto)
     {
-        Console.WriteLine($"🎉 ¡Correcto! Lo adivinaste en {intentos} intentos.");
+        Console.WriteLine($"¡Correcto! Lo adivinaste en {intentos} intentos.");
         adivinado = true;
         break;
     }
@@ -433,4 +789,5 @@ dotnet run</code></pre>
         renderSlide();
     </script>
 </body>
+
 </html>

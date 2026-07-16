@@ -15,7 +15,7 @@ Console.Write("Elige una opción (1-4): ");
 int opcion = Convert.ToInt32(Console.ReadLine());
 
 double resultado;
-string operacion;
+string operacion; 
 
 switch (opcion)
 {
