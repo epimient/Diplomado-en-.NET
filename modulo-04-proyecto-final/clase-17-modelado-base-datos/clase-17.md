@@ -1,5 +1,7 @@
 # Clase 17 — Modelado y Base de Datos
 
+> **Check-in 1 obligatorio:** Al finalizar esta clase el repositorio debe tener modelos creados, DbContext funcionando, migración aplicada y al menos 1 endpoint funcional. Sin avance real = -0.2 en nota final.
+
 ## Objetivo
 
 Crear los modelos de C# que representan las entidades del proyecto, configurar Entity Framework Core con SQLite, generar la migración inicial y agregar datos de prueba (seed data).
@@ -18,70 +20,67 @@ Los modelos son clases que representan las entidades del dominio. Cada propiedad
 - Usar atributos `[Required]`, `[MaxLength]`, etc. para validaciones
 - Las propiedades de navegación representan relaciones
 
-**Ejemplo: Modelo Autor**
+**Ejemplo: Modelo PuntoReciclaje**
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
 
 namespace Api.Models;
 
-public class Autor
+public class PuntoReciclaje
 {
     public int Id { get; set; }
 
     [Required]
-    [MaxLength(100)]
+    [MaxLength(150)]
     public string Nombre { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(100)]
-    public string Apellido { get; set; } = string.Empty;
+    [MaxLength(200)]
+    public string Direccion { get; set; } = string.Empty;
 
-    public DateTime FechaNacimiento { get; set; }
-
+    [Required]
     [MaxLength(50)]
-    public string Nacionalidad { get; set; } = string.Empty;
+    public string TipoResiduo { get; set; } = string.Empty;
 
-    // Propiedad de navegación: un autor tiene muchos libros
-    public List<Libro> Libros { get; set; } = new();
+    [MaxLength(100)]
+    public string Horario { get; set; } = string.Empty;
+
+    public double Latitud { get; set; }
+
+    public double Longitud { get; set; }
+
+    // Propiedad de navegación: un punto tiene muchos reportes
+    public List<Reporte> Reportes { get; set; } = new();
 }
 ```
 
-**Ejemplo: Modelo Libro**
+**Ejemplo: Modelo Residuo**
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api.Models;
 
-public class Libro
+public class Residuo
 {
     public int Id { get; set; }
 
     [Required]
-    [MaxLength(200)]
-    public string Titulo { get; set; } = string.Empty;
+    [MaxLength(50)]
+    public string Tipo { get; set; } = string.Empty;
 
-    // FK hacia Autor
-    public int AutorId { get; set; }
+    [MaxLength(500)]
+    public string Descripcion { get; set; } = string.Empty;
 
-    [ForeignKey(nameof(AutorId))]
-    public Autor Autor { get; set; } = null!;
+    [MaxLength(500)]
+    public string InstruccionesReciclaje { get; set; } = string.Empty;
 
-    [MaxLength(20)]
-    public string? ISBN { get; set; }
-
-    public int AnioPublicacion { get; set; }
-
-    public bool Disponible { get; set; } = true;
-
-    // Propiedad de navegación: un libro tiene muchos préstamos
-    public List<Prestamo> Prestamos { get; set; } = new();
+    public int TiempoDescomposicion { get; set; }
 }
 ```
 
-**Ejemplo: Modelo Prestamo**
+**Ejemplo: Modelo Reporte**
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
@@ -89,24 +88,23 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api.Models;
 
-public class Prestamo
+public class Reporte
 {
     public int Id { get; set; }
 
-    public int LibroId { get; set; }
+    public int PuntoReciclajeId { get; set; }
 
-    [ForeignKey(nameof(LibroId))]
-    public Libro Libro { get; set; } = null!;
+    [ForeignKey(nameof(PuntoReciclajeId))]
+    public PuntoReciclaje PuntoReciclaje { get; set; } = null!;
 
     [Required]
     [MaxLength(100)]
     public string Usuario { get; set; } = string.Empty;
 
-    public DateTime FechaPrestamo { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = DateTime.UtcNow;
 
-    public DateTime? FechaDevolucion { get; set; }
-
-    public bool Devuelto { get; set; } = false;
+    [MaxLength(500)]
+    public string? Observacion { get; set; }
 }
 ```
 
@@ -114,31 +112,31 @@ public class Prestamo
 
 **Relación 1:N (uno a muchos)**
 
-Un autor tiene muchos libros. Esto se modela con:
-- Una FK `AutorId` en la tabla `Libros`
-- Una propiedad de navegación `List<Libro>` en `Autor`
-- Una propiedad de navegación `Autor` en `Libro`
+Un punto de reciclaje tiene muchos reportes. Esto se modela con:
+- Una FK `PuntoReciclajeId` en la tabla `Reportes`
+- Una propiedad de navegación `List<Reporte>` en `PuntoReciclaje`
+- Una propiedad de navegación `PuntoReciclaje` en `Reporte`
 
 ```csharp
-// En Autor
-public List<Libro> Libros { get; set; } = new();
+// En PuntoReciclaje
+public List<Reporte> Reportes { get; set; } = new();
 
-// En Libro
-public int AutorId { get; set; }
-public Autor Autor { get; set; } = null!;
+// En Reporte
+public int PuntoReciclajeId { get; set; }
+public PuntoReciclaje PuntoReciclaje { get; set; } = null!;
 ```
 
 **Relación N:N (muchos a muchos)**
 
-Si se necesitara una relación muchos a muchos (ej: un libro puede tener múltiples categorías), se usa una tabla intermedia:
+Si se necesitara una relación muchos a muchos (ej: un punto de reciclaje acepta múltiples tipos de residuo), se usa una tabla intermedia:
 
 ```csharp
-public class LibroCategoria
+public class PuntoResiduo
 {
-    public int LibroId { get; set; }
-    public Libro Libro { get; set; } = null!;
-    public int CategoriaId { get; set; }
-    public Categoria Categoria { get; set; } = null!;
+    public int PuntoReciclajeId { get; set; }
+    public PuntoReciclaje PuntoReciclaje { get; set; } = null!;
+    public int ResiduoId { get; set; }
+    public Residuo Residuo { get; set; } = null!;
 }
 ```
 
@@ -158,31 +156,24 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<Libro> Libros { get; set; } = null!;
-    public DbSet<Autor> Autores { get; set; } = null!;
-    public DbSet<Prestamo> Prestamos { get; set; } = null!;
+    public DbSet<PuntoReciclaje> PuntosReciclaje { get; set; } = null!;
+    public DbSet<Residuo> Residuos { get; set; } = null!;
+    public DbSet<Reporte> Reportes { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configurar relación Autor - Libro
-        modelBuilder.Entity<Libro>()
-            .HasOne(l => l.Autor)
-            .WithMany(a => a.Libros)
-            .HasForeignKey(l => l.AutorId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // Configurar relación Libro - Prestamo
-        modelBuilder.Entity<Prestamo>()
-            .HasOne(p => p.Libro)
-            .WithMany(l => l.Prestamos)
-            .HasForeignKey(p => p.LibroId)
+        // Configurar relación PuntoReciclaje - Reporte
+        modelBuilder.Entity<Reporte>()
+            .HasOne(r => r.PuntoReciclaje)
+            .WithMany(p => p.Reportes)
+            .HasForeignKey(r => r.PuntoReciclajeId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Configurar índices
-        modelBuilder.Entity<Libro>()
-            .HasIndex(l => l.ISBN)
+        modelBuilder.Entity<PuntoReciclaje>()
+            .HasIndex(p => p.Nombre)
             .IsUnique();
     }
 }
@@ -195,7 +186,7 @@ En `appsettings.json`:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=biblioteca.db"
+    "DefaultConnection": "Data Source=eco-puntos.db"
   },
   "Logging": {
     "LogLevel": {
@@ -301,30 +292,29 @@ public static class SeedData
         using var context = new AppDbContext(
             serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>());
 
-        if (context.Autores.Any())
+        if (context.PuntosReciclaje.Any())
         {
             return; // Ya hay datos
         }
 
-        var autores = new Autor[]
+        var puntos = new PuntoReciclaje[]
         {
-            new() { Nombre = "Gabriel", Apellido = "García Márquez", FechaNacimiento = new DateTime(1927, 3, 6), Nacionalidad = "Colombiana" },
-            new() { Nombre = "Isabel", Apellido = "Allende", FechaNacimiento = new DateTime(1942, 8, 2), Nacionalidad = "Chilena" },
-            new() { Nombre = "Jorge Luis", Apellido = "Borges", FechaNacimiento = new DateTime(1899, 8, 24), Nacionalidad = "Argentina" }
+            new() { Nombre = "Punto Verde Centro", Direccion = "Calle 10 #5-20", TipoResiduo = "Plastico", Horario = "Lun-Sab 8am-6pm", Latitud = 4.7110, Longitud = -74.0721 },
+            new() { Nombre = "Eco-punto Norte", Direccion = "Av. Caracas #45-10", TipoResiduo = "Vidrio", Horario = "Lun-Vie 9am-5pm", Latitud = 4.7346, Longitud = -74.0584 },
+            new() { Nombre = "Recicla Sur", Direccion = "Calle 30 #20-50", TipoResiduo = "Papel", Horario = "Mar-Dom 10am-7pm", Latitud = 4.5981, Longitud = -74.0758 }
         };
 
-        context.Autores.AddRange(autores);
+        context.PuntosReciclaje.AddRange(puntos);
         context.SaveChanges();
 
-        var libros = new Libro[]
+        var residuos = new Residuo[]
         {
-            new() { Titulo = "Cien años de soledad", AutorId = 1, ISBN = "978-84-376-0494-7", AnioPublicacion = 1967, Disponible = true },
-            new() { Titulo = "El amor en los tiempos del cólera", AutorId = 1, ISBN = "978-84-376-0495-4", AnioPublicacion = 1985, Disponible = true },
-            new() { Titulo = "La casa de los espíritus", AutorId = 2, ISBN = "978-84-376-0496-1", AnioPublicacion = 1982, Disponible = true },
-            new() { Titulo = "Ficciones", AutorId = 3, ISBN = "978-84-376-0497-8", AnioPublicacion = 1944, Disponible = false }
+            new() { Tipo = "Plastico", Descripcion = "Botellas, envases, bolsas", InstruccionesReciclaje = "Lavar y secar antes de depositar", TiempoDescomposicion = 450 },
+            new() { Tipo = "Vidrio", Descripcion = "Botellas, frascos, envases de vidrio", InstruccionesReciclaje = "Separar por color, retirar tapas", TiempoDescomposicion = 4000 },
+            new() { Tipo = "Papel", Descripcion = "Periódicos, revistas, cuadernos, cajas", InstruccionesReciclaje = "Mantener seco, doblar para optimizar espacio", TiempoDescomposicion = 6 }
         };
 
-        context.Libros.AddRange(libros);
+        context.Residuos.AddRange(residuos);
         context.SaveChanges();
     }
 }
@@ -353,10 +343,10 @@ using (var scope = app.Services.CreateScope())
 
 ---
 
-## Ejemplo Práctico: Migración Inicial para Biblioteca
+## Ejemplo Práctico: Migración Inicial para Eco-puntos
 
 ```bash
-cd SistemaBiblioteca/Api
+cd EcoPuntosApi/Api
 
 # Agregar paquetes
 dotnet add package Microsoft.EntityFrameworkCore.Sqlite
@@ -377,7 +367,7 @@ dotnet ef database update
 # Done.
 
 # Verificar base de datos creada
-ls -la biblioteca.db
+ls -la eco-puntos.db
 ```
 
 ---

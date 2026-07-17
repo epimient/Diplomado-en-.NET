@@ -1,8 +1,10 @@
 # Clase 18 — Desarrollo de la API
 
+> **Check-in 2 obligatorio:** Al finalizar esta clase el repositorio debe tener CRUD completo, IA integrada (Groq) y Swagger funcionando. Sin avance real = -0.2 en nota final.
+
 ## Objetivo
 
-Implementar los controladores REST con CRUD completo, crear DTOs de entrada y salida, aplicar validaciones con Data Annotations y configurar Swagger para documentar la API.
+Implementar los controladores REST con CRUD completo, crear DTOs de entrada y salida, aplicar validaciones con Data Annotations, configurar Swagger e integrar la API con inteligencia artificial (Groq).
 
 ---
 
@@ -458,16 +460,141 @@ builder.Services.AddSwaggerGen(c =>
 });
 ```
 
+### 8. Integración con IA (Groq)
+
+El proyecto final debe incluir un endpoint de análisis con inteligencia artificial usando la API de Groq (gratis, sin tarjeta de crédito).
+
+**Registro en Groq:**
+1. Ir a https://console.groq.com
+2. Crear cuenta gratuita
+3. Ir a API Keys y generar una nueva llave
+4. Guardar la llave en `appsettings.json`:
+
+```json
+{
+  "Groq": {
+    "ApiKey": "gsk_tu_api_key_aqui",
+    "Model": "llama3-70b-8192"
+  }
+}
+```
+
+**Agregar HttpClient en Program.cs:**
+
+```csharp
+builder.Services.AddHttpClient("Groq", client =>
+{
+    client.BaseAddress = new Uri("https://api.groq.com/openai/v1");
+    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {builder.Configuration["Groq:ApiKey"]}");
+});
+```
+
+**Crear servicio de IA (Services/GroqService.cs):**
+
+```csharp
+using System.Text;
+using System.Text.Json;
+
+namespace Api.Services;
+
+public class GroqService
+{
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IConfiguration _configuration;
+
+    public GroqService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+    {
+        _httpClientFactory = httpClientFactory;
+        _configuration = configuration;
+    }
+
+    public async Task<string> AnalizarAsync(string prompt)
+    {
+        var client = _httpClientFactory.CreateClient("Groq");
+
+        var requestBody = new
+        {
+            model = _configuration["Groq:Model"] ?? "llama3-70b-8192",
+            messages = new[]
+            {
+                new { role = "system", content = "Eres un asistente experto en clasificación de residuos y reciclaje. Responde en español de forma clara y concisa." },
+                new { role = "user", content = prompt }
+            },
+            temperature = 0.3,
+            max_tokens = 300
+        };
+
+        var json = JsonSerializer.Serialize(requestBody);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await client.PostAsync("/chat/completions", content);
+        response.EnsureSuccessStatusCode();
+
+        var responseJson = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<JsonElement>(responseJson);
+
+        return result.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString() ?? "Sin respuesta";
+    }
+}
+```
+
+**Registrar el servicio en Program.cs:**
+
+```csharp
+builder.Services.AddScoped<GroqService>();
+```
+
+**Endpoint de análisis con IA en el controlador:**
+
+```csharp
+[HttpPost("{id}/analizar")]
+public async Task<ActionResult<object>> AnalizarReporte(int id, [FromServices] GroqService groq)
+{
+    var reporte = await _context.Reportes
+        .Include(r => r.PuntoReciclaje)
+        .FirstOrDefaultAsync(r => r.Id == id);
+
+    if (reporte == null)
+        return NotFound(new { mensaje = "Reporte no encontrado" });
+
+    var prompt = $@"
+Analiza la siguiente observación de un reporte de reciclaje:
+- Punto de reciclaje: {reporte.PuntoReciclaje.Nombre}
+- Tipo de residuo aceptado: {reporte.PuntoReciclaje.TipoResiduo}
+- Observación del usuario: {reporte.Observacion ?? "Sin observación"}
+
+Clasifica el residuo reportado, indica si es reciclable y da una recomendación. Responde en máximo 3 oraciones.";
+
+    try
+    {
+        var analisis = await groq.AnalizarAsync(prompt);
+        return Ok(new { reporteId = id, analisis });
+    }
+    catch (Exception ex)
+    {
+        return Ok(new { reporteId = id, analisis = "Servicio de IA no disponible", error = ex.Message });
+    }
+}
+```
+
+**Configurar Groq para el proyecto:**
+- El rol **API/IA** del equipo es responsable de esta integración
+- Usar `IHttpClientFactory` para gestionar las conexiones HTTP
+- El prompt debe diseñarse según el dominio del proyecto (no copiar el ejemplo tal cual)
+- Si Groq falla, la API debe responder igual con un mensaje de "Servicio de IA no disponible"
+- Probar el endpoint desde Swagger antes de integrar con el frontend
+
 ---
 
-## Ejemplo Práctico: CRUD Completo de Libros y Autores
+## Ejemplo Práctico: CRUD Completo de Puntos de Reciclaje con IA
 
-1. Crear `DTOs/LibroDTO.cs`, `DTOs/LibroCreateDTO.cs`, `DTOs/LibroUpdateDTO.cs`
-2. Crear `DTOs/AutorDTO.cs`, `DTOs/AutorCreateDTO.cs`
-3. Crear `Controllers/LibrosController.cs` con CRUD completo
-4. Crear `Controllers/AutoresController.cs` con CRUD completo
-5. Configurar Swagger en `Program.cs`
-6. Ejecutar `dotnet run` y probar desde Swagger en `http://localhost:5000/swagger`
+1. Crear `DTOs/PuntoReciclajeDTO.cs`, `DTOs/PuntoReciclajeCreateDTO.cs`, `DTOs/PuntoReciclajeUpdateDTO.cs`
+2. Crear `DTOs/ReporteDTO.cs`, `DTOs/ReporteCreateDTO.cs`
+3. Crear `Services/GroqService.cs` con el método `AnalizarAsync`
+4. Crear `Controllers/PuntosReciclajeController.cs` con CRUD completo
+5. Crear `Controllers/ReportesController.cs` con CRUD + endpoint `POST /api/reportes/{id}/analizar`
+6. Configurar Swagger y HttpClient en `Program.cs`
+7. Ejecutar `dotnet run` y probar desde Swagger en `http://localhost:5000/swagger`
 
 ---
 
@@ -514,19 +641,21 @@ builder.Services.AddSwaggerGen(c =>
 
 ### Nivel 3 — Reto
 
-**Enunciado:** Agrega endpoints de búsqueda y filtros avanzados a tu API.
+**Enunciado:** Integra inteligencia artificial (Groq) en tu API y agrega endpoints de búsqueda avanzada.
 
 **Requisitos:**
-- Implementar `[HttpGet("buscar")]` con al menos 3 filtros opcionales
-- Los filtros deben ser combinables entre sí
-- Implementar paginación básica (parámetros `page` y `pageSize`)
-- Documentar los filtros en Swagger con `[FromQuery]`
-- Probar combinaciones de filtros desde Swagger
+- Crear `Services/GroqService.cs` con el método `AnalizarAsync`
+- Configurar `HttpClientFactory` y registrar el servicio en `Program.cs`
+- Implementar `[HttpPost("{id}/analizar")]` que envíe datos de una entidad a Groq y devuelva el análisis
+- Diseñar un prompt específico para el dominio de tu proyecto ODS
+- Si Groq falla, responder con "Servicio de IA no disponible" sin romper la API
+- Implementar `[HttpGet("buscar")]` con al menos 3 filtros opcionales combinables
 
-**Entregable:** Código del endpoint de búsqueda con filtros y paginación funcional.
+**Entregable:** Controlador con CRUD completo, endpoint de análisis con IA y búsqueda con filtros.
 
 **Criterios de evaluación:**
-- Los filtros funcionan de forma individual y combinada
-- La paginación devuelve resultados correctos
-- El código es eficiente (usa `IQueryable`, no carga datos innecesarios)
-- Swagger documenta los parámetros de filtro
+- La integración con Groq funciona y devuelve análisis coherente
+- El prompt está adaptado al dominio del proyecto
+- La API no se cae si Groq falla (manejo de excepciones)
+- Los filtros de búsqueda funcionan individualmente y combinados
+- Swagger documenta todos los endpoints incluyendo el de IA

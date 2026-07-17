@@ -1,8 +1,10 @@
 # Clase 20 — Presentación Final
 
+> **Check-ins completados:** Semana 4 finalizada. Todos los artefactos deben estar en el repositorio: código, README, capturas, video y presentación.
+
 ## Objetivo
 
-Preparar y realizar la presentación final del proyecto, demostrar el funcionamiento de la API en vivo, presentar la estructura del código y los aprendizajes obtenidos durante el diplomado, y entregar todos los artefactos del proyecto.
+Preparar y realizar la presentación final del proyecto, demostrar el funcionamiento de la API en vivo (incluyendo la integración con IA), presentar la estructura del código y los aprendizajes obtenidos durante el diplomado, y entregar todos los artefactos del proyecto.
 
 ---
 
@@ -45,6 +47,9 @@ La demostración en vivo es la parte más importante de la presentación. Debe s
 - [ ] DELETE funciona para eliminar un registro
 - [ ] Los casos de error se manejan correctamente (404, 400)
 - [ ] Los filtros o búsqueda funcionan (si aplica)
+- [ ] El endpoint de IA (Groq) responde con análisis coherente
+- [ ] La API Key de Groq está configurada en `appsettings.json`
+- [ ] El servicio de IA no se cae si Groq no responde (manejo de errores)
 
 **Consejos para el demo:**
 
@@ -77,6 +82,7 @@ La demostración en vivo es la parte más importante de la presentación. Debe s
 - .NET 8 / ASP.NET Core
 - Entity Framework Core + SQLite
 - Swagger / OpenAPI
+- Groq API (Llama 3)
 - Git + GitHub
 
 **Diapositiva 5 — Modelo de Datos**
@@ -135,6 +141,9 @@ La demostración en vivo es la parte más importante de la presentación. Debe s
 - [ ] Seed data funcional
 - [ ] Swagger configurado y documentado
 - [ ] Manejo básico de errores (404, 400)
+- [ ] GroqService implementado con HttpClient
+- [ ] Endpoint de análisis con IA funcional
+- [ ] Manejo de fallo de Groq (Servicio de IA no disponible)
 
 **Presentación:**
 
@@ -153,23 +162,23 @@ La demostración en vivo es la parte más importante de la presentación. Debe s
 
 | Criterio | Peso | Descripción |
 |----------|------|-------------|
-| Funcionalidad | 30% | La API funciona correctamente, todos los endpoints responden, el CRUD está completo |
-| Uso correcto de C# y .NET | 20% | Código limpio, POO aplicada, uso correcto deasync/await, inyección de dependencias |
-| Base de datos y persistencia | 15% | Modelos correctos, relaciones bien definidas, migraciones, seed data, SQLite funcional |
-| API REST y Swagger | 15% | Endpoints RESTful, DTOs, validaciones, Swagger documentado |
-| Documentación | 10% | README profesional, capturas, ejemplos, tabla de endpoints |
-| Presentación | 10% | Slides claros, demo fluido, explicación del proyecto, respuestas a preguntas |
+| Funcionalidad | 30% | La API funciona correctamente, CRUD completo, endpoint de IA (Groq) funcional |
+| Uso correcto de C# y .NET | 20% | Código limpio, POO aplicada, async/await, inyección de dependencias, HttpClient |
+| Base de datos y persistencia | 15% | Modelos correctos, relaciones, migraciones, seed data, SQLite funcional |
+| API REST y Swagger | 15% | Endpoints RESTful, DTOs, validaciones, Swagger documentado, integración con IA |
+| Documentación | 10% | README profesional, capturas (incluyendo IA), ejemplos, tabla de endpoints |
+| Presentación | 10% | Slides claros, demo fluido con IA, explicación del proyecto, respuestas a preguntas |
 
 **Rúbrica de evaluación detallada:**
 
 | Criterio | Excelente (100%) | Bueno (75%) | Regular (50%) | Insuficiente (25%) |
 |----------|-----------------|-------------|---------------|-------------------|
-| Funcionalidad | Todos los endpoints funcionan, CRUD completo, manejo de errores | La mayoría funciona, algún error menor | Varios endpoints no funcionan | No funciona o CRUD incompleto |
-| Código C# | POO correcta, async/await, DI, código limpio | Buen uso, algún detalle menor | Errores en POO o async | Código desordenado, sin POO |
+| Funcionalidad | CRUD completo, IA funcional, manejo de errores | Todo funciona, IA con fallas menores | Varios endpoints no funcionan o IA no integrada | No funciona o CRUD incompleto |
+| Código C# | POO, async/await, DI, HttpClient, código limpio | Buen uso, algún detalle menor | Errores en POO, async o HttpClient | Código desordenado, sin POO |
 | Base de datos | Modelos, relaciones, migraciones, seed data | Todo presente con algún detalle | Faltan relaciones o seed data | Sin migraciones o BD no funcional |
-| API REST | RESTful, DTOs, validaciones, Swagger | Casi completo, falta algún DTO | Faltan validaciones o Swagger | No es RESTful, sin DTOs |
-| Documentación | README completo, capturas, video | README bueno, falta video | README incompleto | Sin README significativo |
-| Presentación | Slides, demo fluido, responde bien | Buena presentación, demo con fallas | Presentación básica | Sin presentación o demo |
+| API REST | RESTful, DTOs, validaciones, Swagger, IA integrada | Casi completo, falta algún DTO o detalle IA | Faltan validaciones, Swagger o IA | No es RESTful, sin DTOs ni IA |
+| Documentación | README completo, capturas (incluye IA), video | README bueno, falta video o captura IA | README incompleto | Sin README significativo |
+| Presentación | Slides, demo fluido con IA, responde bien | Buena presentación, demo con fallas | Presentación básica | Sin presentación o demo |
 
 ### 6. Guía para una Presentación Exitosa
 
@@ -201,10 +210,12 @@ La demostración en vivo es la parte más importante de la presentación. Debe s
 |-------|----------|
 | La aplicación no compila | Hacer `dotnet build` antes de la presentación |
 | Swagger no carga | Verificar que la app esté corriendo y el puerto correcto |
+| El endpoint IA no responde | Verificar API Key de Groq en `appsettings.json` y conexión a Internet |
 | El demo es muy largo | Practicar con cronómetro, priorizar lo esencial |
-| No se entiende el problema | Explicar el contexto brevemente al inicio |
+| No se entiende el problema o el ODS | Explicar el contexto brevemente al inicio |
 | El equipo no coordina | Asignar quién habla de cada parte |
 | Los datos de prueba no son claros | Usar nombres y datos reconocibles |
+| La IA da respuestas incoherentes | Revisar el prompt, probar con temperatura más baja |
 
 ### 7. Checklist del Día de la Presentación
 
@@ -212,41 +223,46 @@ La demostración en vivo es la parte más importante de la presentación. Debe s
 - [ ] Tener la aplicación corriendo antes de comenzar
 - [ ] Tener las diapositivas abiertas y listas
 - [ ] Tener Swagger abierto en el navegador
-- [ ] Tener VS Code abierto con el código
+- [ ] Tener VS Code abierto con el código (GroqService visible)
 - [ ] Tener el repositorio de GitHub abierto
 - [ ] Tener el video demo como respaldo
-- [ ] Distribuir los temas entre los integrantes
-- [ ] Preparar 2 o 3 preguntas frecuentes y sus respuestas
+- [ ] Verificar que la API Key de Groq está configurada
+- [ ] Probar el endpoint IA antes de comenzar (Groq necesita Internet)
+- [ ] Distribuir los temas entre los integrantes según roles
+- [ ] Preparar 2 o 3 preguntas frecuentes sobre el proyecto y su ODS
 
 ---
 
 ## Ejemplo Práctico: Guía de Presentación Exitosa
 
-**Equipo:** Los desarrolladores
+**Equipo:** Eco-puntos Devs
 
-**Proyecto:** Sistema de Biblioteca API
+**Proyecto:** Eco-puntos API — Clasificador de residuos (ODS 12)
 
 **Duración:** 12 minutos
 
 **Distribución del tiempo:**
-- 0:00 - 1:30: Introducción y problema (Integrante 1)
-- 1:30 - 3:00: Solución y tecnología (Integrante 2)
-- 3:00 - 4:30: Modelo de datos (Integrante 1)
-- 4:30 - 8:00: Demo en vivo (Integrante 2)
-- 8:00 - 9:30: Código destacado (Integrante 1)
-- 9:30 - 10:30: Aprendizajes (ambos)
-- 10:30 - 12:00: Preguntas (ambos)
+- 0:00 - 1:30: Introducción y problema ODS (Docs/QA)
+- 1:30 - 3:00: Solución y tecnologías (Backend/TL)
+- 3:00 - 4:30: Modelo de datos y BD (BD/DTOs)
+- 4:30 - 7:00: Demo en vivo — CRUD e IA (API/IA)
+- 7:00 - 8:30: Código destacado — GroqService (API/IA)
+- 8:30 - 10:00: Aprendizajes (todo el equipo)
+- 10:00 - 12:00: Preguntas (todo el equipo)
 
 **Posibles preguntas y respuestas:**
 
-1. **¿Por qué usaron SQLite en lugar de SQL Server?**
-   - SQLite es ligera, no requiere instalación de servidor, es ideal para proyectos educativos y portátiles.
+1. **¿Por qué eligieron este proyecto y qué ODS aborda?**
+   - Elegimos Eco-puntos porque el reciclaje es un problema cotidiano. Aborda el ODS 12 (Producción y consumo responsables) al facilitar la ubicación de puntos de reciclaje y clasificar residuos con IA.
 
-2. **¿Cómo manejan la concurrencia si dos usuarios intentan prestar el mismo libro?**
-   - Podríamos usar una transacción y verificar la propiedad `Disponible` antes de crear el préstamo.
+2. **¿Cómo funciona la integración con Groq y por qué usar IA?**
+   - Groq permite clasificar automáticamente los residuos reportados por los usuarios usando el modelo Llama 3. Esto evita que el usuario tenga que saber de antemano si un residuo es reciclable.
 
-3. **¿Qué mejorarían para una versión 2.0?**
-   - Agregar autenticación JWT, página web con Blazor, reportes, notificaciones por email.
+3. **¿Qué pasa si Groq no está disponible?**
+   - La API maneja la excepción y responde con "Servicio de IA no disponible" sin bloquear el resto de la funcionalidad. El CRUD sigue funcionando independientemente.
+
+4. **¿Qué mejorarían para una versión 2.0?**
+   - Agregar autenticación, mapas interactivos, notificaciones cuando se agreguen nuevos puntos de reciclaje, y soporte para fotos en los reportes.
 
 ---
 
@@ -273,21 +289,22 @@ La demostración en vivo es la parte más importante de la presentación. Debe s
 
 ### Nivel 2 — Intermedio
 
-**Enunciado:** Ensaya la demo del proyecto y prepárate para la presentación.
+**Enunciado:** Ensaya la demo del proyecto incluyendo la integración con IA.
 
 **Requisitos:**
-- Practicar la demo completa al menos 3 veces
+- Practicar la demo completa al menos 3 veces (incluyendo el endpoint IA)
 - Cronometrar la presentación (debe durar entre 10 y 15 minutos)
-- Preparar respuestas para 3 preguntas técnicas potenciales
+- Verificar que la API Key de Groq funciona en la máquina de presentación
+- Preparar respuestas para 3 preguntas técnicas: una sobre IA/Groq, una sobre BD, una sobre el ODS
 - Probar la aplicación en la máquina de presentación
-- Tener plan de respaldo (capturas, video grabado)
+- Tener plan de respaldo (capturas del endpoint IA, video grabado)
 
 **Entregable:** No hay archivo, pero el equipo debe demostrar preparación durante la presentación.
 
 **Criterios de evaluación:**
-- La demo funciona sin interrupciones
+- La demo funciona sin interrupciones (CRUD + IA)
 - El tiempo está dentro del rango establecido
-- Responden preguntas técnicas con claridad
+- Responden preguntas técnicas con claridad (especialmente sobre la IA)
 - Muestran confianza y preparación
 
 ### Nivel 3 — Reto

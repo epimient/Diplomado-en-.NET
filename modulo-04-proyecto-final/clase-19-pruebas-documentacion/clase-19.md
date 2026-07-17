@@ -1,8 +1,10 @@
 # Clase 19 — Pruebas y Documentación
 
+> **Check-in 2 debe estar completado de la clase anterior.** Esta clase se enfoca en verificar, documentar y presentar el proyecto final.
+
 ## Objetivo
 
-Verificar el funcionamiento de la API realizando pruebas desde Swagger UI, Thunder Client y curl, documentar todos los endpoints en un README profesional, tomar capturas de pantalla y grabar un video demo del proyecto.
+Verificar el funcionamiento de la API realizando pruebas desde Swagger UI, Thunder Client y curl, incluyendo el endpoint de IA con Groq, documentar todos los endpoints en un README profesional, tomar capturas de pantalla y grabar un video demo del proyecto.
 
 ---
 
@@ -155,7 +157,44 @@ curl -s -o /dev/null -w "Status: %{http_code}\n" -X DELETE "$API_BASE/libros/2"
 echo -e "\n=== Pruebas completadas ==="
 ```
 
-### 4. Documentar Endpoints en README.md
+### 4. Pruebas del Endpoint de IA (Groq)
+
+El endpoint de análisis con IA requiere una prueba especial porque depende de un servicio externo.
+
+**Probar desde Swagger:**
+
+1. Primero verificar que el endpoint `POST /api/reportes/{id}/analizar` aparece en Swagger
+2. Crear un reporte con `POST /api/reportes` primero
+3. Usar el ID del reporte creado para probar `POST /api/reportes/1/analizar`
+4. Verificar que la respuesta incluye el campo `analisis` con texto de Groq
+5. Probar con un ID inexistente para verificar el error 404
+
+**Prueba con curl:**
+
+```bash
+# Primero crear un reporte
+curl -s -X POST http://localhost:5000/api/reportes \
+  -H "Content-Type: application/json" \
+  -d '{"puntoReciclajeId":1,"usuario":"Carlos","observacion":"Botella plastica y una lata de aluminio"}' | python -m json.tool
+
+# Luego analizar el reporte con IA
+curl -s -X POST http://localhost:5000/api/reportes/1/analizar | python -m json.tool
+```
+
+**Casos de prueba para el endpoint IA:**
+
+| Caso | Entrada | Respuesta esperada |
+|------|---------|-------------------|
+| Reporte existe con observación | POST /api/reportes/1/analizar | 200 + `analisis` con texto de Groq |
+| Reporte no existe | POST /api/reportes/999/analizar | 404 Not Found |
+| Sin conexión a Internet (simulado) | Desconectar red, ejecutar POST | 200 + `analisis: "Servicio de IA no disponible"` |
+
+**Verificar el prompt:**
+- El prompt debe estar adaptado al dominio del proyecto
+- Debe pedir a Groq que clasifique, analice o recomiende según el contexto ODS
+- Si la respuesta de Groq no es coherente, ajustar el `system prompt` o la temperatura
+
+### 5. Documentar Endpoints en README.md
 
 El README debe incluir una tabla clara de los endpoints.
 
@@ -164,26 +203,26 @@ El README debe incluir una tabla clara de los endpoints.
 ```markdown
 ## Endpoints de la API
 
-### Libros
+### Puntos de Reciclaje
 
 | Método | URL | Descripción |
 |--------|-----|-------------|
-| GET | `/api/libros` | Obtiene todos los libros |
-| GET | `/api/libros/{id}` | Obtiene un libro por su ID |
-| GET | `/api/libros/buscar?titulo=&autorId=&disponible=` | Busca libros con filtros |
-| POST | `/api/libros` | Crea un nuevo libro |
-| PUT | `/api/libros/{id}` | Actualiza un libro existente |
-| DELETE | `/api/libros/{id}` | Elimina un libro |
+| GET | `/api/puntos-reciclaje` | Obtiene todos los puntos de reciclaje |
+| GET | `/api/puntos-reciclaje/{id}` | Obtiene un punto por su ID |
+| GET | `/api/puntos-reciclaje/buscar?tipo=&lat=&lng=` | Busca puntos con filtros |
+| POST | `/api/puntos-reciclaje` | Crea un nuevo punto de reciclaje |
+| PUT | `/api/puntos-reciclaje/{id}` | Actualiza un punto existente |
+| DELETE | `/api/puntos-reciclaje/{id}` | Elimina un punto |
 
-### Autores
+### Reportes
 
 | Método | URL | Descripción |
 |--------|-----|-------------|
-| GET | `/api/autores` | Obtiene todos los autores |
-| GET | `/api/autores/{id}` | Obtiene un autor por su ID |
-| POST | `/api/autores` | Crea un nuevo autor |
-| PUT | `/api/autores/{id}` | Actualiza un autor existente |
-| DELETE | `/api/autores/{id}` | Elimina un autor |
+| GET | `/api/reportes` | Obtiene todos los reportes |
+| GET | `/api/reportes/{id}` | Obtiene un reporte por su ID |
+| POST | `/api/reportes` | Crea un nuevo reporte |
+| POST | `/api/reportes/{id}/analizar` | Analiza el reporte con IA (Groq) |
+| DELETE | `/api/reportes/{id}` | Elimina un reporte |
 ```
 
 **Incluir ejemplos de JSON:**
@@ -223,20 +262,21 @@ Estructura recomendada para el README del proyecto final:
 ```markdown
 # Nombre del Proyecto
 
-Breve descripción del proyecto (2-3 líneas).
+Breve descripción del proyecto y su relación con el ODS seleccionado (2-3 líneas).
 
 ## Tecnologías Utilizadas
 
 - C# / .NET 8
 - ASP.NET Core Web API
-- Entity Framework Core
-- SQLite
+- Entity Framework Core + SQLite
 - Swagger / OpenAPI
+- Groq API (IA - Llama 3)
 
 ## Requisitos Previos
 
 - .NET SDK 8.0 o superior
 - Visual Studio Code o Visual Studio Community
+- API Key de Groq (https://console.groq.com)
 
 ## Instalación
 
@@ -244,6 +284,7 @@ Breve descripción del proyecto (2-3 líneas).
 git clone https://github.com/usuario/nombre-proyecto.git
 cd nombre-proyecto/Api
 dotnet restore
+# Configurar API Key de Groq en appsettings.json
 dotnet run
 ```
 
@@ -258,6 +299,7 @@ Api/
 ├── DTOs/              # Modelos de entrada y salida
 ├── Models/            # Entidades de la base de datos
 ├── Migrations/        # Migraciones de EF Core
+├── Services/          # Servicios (GroqService, etc.)
 ├── Program.cs         # Punto de entrada
 └── appsettings.json   # Configuración
 ```
@@ -269,8 +311,8 @@ Api/
 ## Capturas de Pantalla
 
 ![Swagger UI](screenshots/swagger.png)
-![GET Libros](screenshots/get-libros.png)
-![POST Libros](screenshots/post-libros.png)
+![GET Puntos](screenshots/get-puntos.png)
+![POST Reporte con IA](screenshots/post-reporte-ia.png)
 
 ## Video Demostración
 
@@ -278,8 +320,10 @@ Api/
 
 ## Integrantes
 
-- Nombre Apellido - Rol
-- Nombre Apellido - Rol
+- Nombre Apellido - Backend / TL
+- Nombre Apellido - API / IA
+- Nombre Apellido - BD / DTOs
+- Nombre Apellido - Docs / QA
 
 ## Estado del Proyecto
 
@@ -306,6 +350,7 @@ Herramientas recomendadas para capturas:
 5. Respuesta exitosa de DELETE /api/entidad
 6. Error 404 (recurso no encontrado)
 7. Error 400 (validación fallida)
+8. Endpoint de IA funcionando (POST /api/entidad/{id}/analizar con respuesta de Groq)
 
 ### 7. Video Demo
 
@@ -321,11 +366,12 @@ Herramientas recomendadas para capturas:
 
 **Estructura del video:**
 
-1. **Presentación** (30s): Nombre del proyecto, integrantes, tecnología
-2. **Demostración de Swagger** (1-2min): Mostrar endpoints y probar CRUD
-3. **Código relevante** (1min): Mostrar estructura del proyecto, controladores, modelos
-4. **Pruebas desde Thunder Client o curl** (30s): Alternativa a Swagger
-5. **Cierre** (30s): Conclusiones, aprendizajes, enlace al repositorio
+1. **Presentación** (30s): Nombre del proyecto, ODS asociado, integrantes, tecnología
+2. **Demostración de Swagger** (1-2min): Mostrar endpoints CRUD y probar operaciones
+3. **Demo de IA** (1min): Probar el endpoint de Groq, mostrar el análisis generado
+4. **Código relevante** (1min): Mostrar estructura del proyecto, GroqService, controladores
+5. **Pruebas con curl o Thunder Client** (30s): Alternativa a Swagger
+6. **Cierre** (30s): Conclusiones, aprendizajes, enlace al repositorio
 
 **Subir el video:**
 - YouTube (no listado o público)
@@ -334,16 +380,17 @@ Herramientas recomendadas para capturas:
 
 ---
 
-## Ejemplo Práctico: Documentar API con README y Probar Endpoints
+## Ejemplo Práctico: Documentar API Eco-puntos con README y Probar Endpoints
 
 1. Ejecutar `dotnet run` en la carpeta del proyecto
 2. Abrir `http://localhost:5000/swagger` en el navegador
-3. Probar cada endpoint del controlador de Libros
-4. Tomar capturas de pantalla de las respuestas exitosas y errores
-5. Probar los mismos endpoints con curl desde la terminal
-6. Escribir el README.md completo con la documentación
-7. Subir capturas a la carpeta `screenshots/`
-8. Grabar y subir el video demo
+3. Probar cada endpoint del controlador de PuntosReciclaje (GET, POST, PUT, DELETE)
+4. Probar el endpoint de IA: `POST /api/reportes/1/analizar` y verificar la respuesta de Groq
+5. Probar casos de error: 404 con ID inexistente, 400 con datos inválidos
+6. Probar los mismos endpoints con curl desde la terminal
+7. Escribir el README.md completo con la documentación incluyendo la integración con IA
+8. Tomar capturas de pantalla y subir a la carpeta `screenshots/`
+9. Grabar y subir el video demo mostrando el CRUD y la funcionalidad de IA
 
 ---
 
@@ -351,18 +398,20 @@ Herramientas recomendadas para capturas:
 
 ### Nivel 1 — Básico
 
-**Enunciado:** Prueba todos los endpoints de tu API desde Swagger UI.
+**Enunciado:** Prueba todos los endpoints de tu API desde Swagger UI, incluyendo el de IA.
 
 **Requisitos:**
 - Probar GET, POST, PUT, DELETE para cada entidad principal
+- Probar el endpoint de IA (`POST /api/entidad/{id}/analizar`)
 - Verificar códigos de respuesta correctos
-- Probar al menos un caso de error (404, 400)
-- Tomar 3 capturas de pantalla de las pruebas
+- Probar casos de error (404, 400)
+- Tomar 4 capturas de pantalla: CRUD exitoso + IA funcionando
 
-**Entregable:** 3 capturas de pantalla mostrando respuestas exitosas de Swagger.
+**Entregable:** 4 capturas de pantalla mostrando respuestas desde Swagger.
 
 **Criterios de evaluación:**
 - Todos los endpoints funcionan correctamente
+- El endpoint de IA devuelve análisis de Groq
 - Los códigos de respuesta HTTP son correctos
 - Los errores se manejan adecuadamente
 
@@ -371,17 +420,17 @@ Herramientas recomendadas para capturas:
 **Enunciado:** Escribe un README.md profesional para tu proyecto.
 
 **Requisitos:**
-- Incluir nombre, descripción, tecnologías, instalación
-- Tabla completa de todos los endpoints
-- Ejemplos de JSON de solicitud y respuesta
-- Capturas de pantalla embebidas
-- Sección de integrantes con roles
+- Incluir nombre, descripción, ODS asociado, tecnologías, instalación
+- Tabla completa de todos los endpoints incluyendo el de IA con Groq
+- Ejemplos de JSON de solicitud y respuesta (incluir respuesta del análisis IA)
+- Capturas de pantalla embebidas (incluir una del endpoint IA)
+- Sección de integrantes con roles (Backend/TL, API/IA, BD/DTOs, Docs/QA)
 
 **Entregable:** Archivo `README.md` completo en la raíz del repositorio.
 
 **Criterios de evaluación:**
 - README está bien estructurado y formateado
-- La tabla de endpoints es completa y clara
+- La tabla de endpoints incluye el de IA
 - Los ejemplos JSON son precisos
 - Las capturas de pantalla son visibles y relevantes
 
@@ -391,10 +440,11 @@ Herramientas recomendadas para capturas:
 
 **Requisitos:**
 - Grabar video de 3 a 5 minutos
-- Mostrar la API funcionando desde Swagger
-- Mostrar el código fuente (controladores, modelos, DTOs)
+- Mostrar la API funcionando desde Swagger (CRUD completo)
+- Demostrar el endpoint de IA con Groq en funcionamiento
+- Mostrar el código fuente (GroqService, controladores, modelos)
 - Probar al menos un endpoint con curl o Thunder Client
-- Incluir presentación inicial y cierre
+- Incluir presentación inicial (nombre del proyecto, ODS, equipo) y cierre
 - Subir a YouTube (público o no listado)
 - Agregar el enlace al README.md
 
@@ -403,6 +453,7 @@ Herramientas recomendadas para capturas:
 **Criterios de evaluación:**
 - Video dentro del tiempo establecido
 - Se muestra la API funcionando correctamente
+- La demostración de IA es clara y funcional
 - Se explica brevemente la estructura del proyecto
 - El audio es claro y comprensible
 - El enlace funciona y es accesible
