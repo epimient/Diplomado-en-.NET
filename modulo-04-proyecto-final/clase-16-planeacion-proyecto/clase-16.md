@@ -38,25 +38,27 @@ Cada equipo debe construir una **API REST funcional** con base de datos, CRUD co
 
 ### 3. Elegir un Tema
 
-Cada equipo debe seleccionar un tema. Algunas ideas:
+Cada equipo debe seleccionar un tema alineado a los **Objetivos de Desarrollo Sostenible (ODS)**. El proyecto debe resolver un problema real o simulado usando la API.
 
-| Tema | Entidades posibles |
-|------|-------------------|
-| Sistema de Biblioteca | Libro, Autor, Préstamo, Categoría |
-| Sistema de Inventario | Producto, Categoría, Proveedor, Movimiento |
-| Sistema de Restaurante | Plato, Categoría, Pedido, Cliente, Mesa |
-| Sistema de Hotel | Habitación, Cliente, Reserva, Factura |
-| Sistema de Gimnasio | Miembro, Clase, Entrenador, Membresía |
-| Sistema de Parqueadero | Vehículo, Espacio, Ticket, Cliente |
-| Agenda Médica | Paciente, Doctor, Cita, Especialidad |
-| Sistema de Ventas | Cliente, Producto, Venta, DetalleVenta |
-| Gestión de Clientes | Cliente, Pedido, Producto, Dirección |
+**Problemáticas sugeridas:**
+
+| Proyecto | ODS |
+|----------|-----|
+| Clasificador de quejas ciudadanas con IA | ODS 11 — Ciudades sostenibles |
+| Match tutor-estudiante vulnerable | ODS 4 — Educación de calidad |
+| Eco-puntos: clasificador de residuos | ODS 12 — Producción responsables |
+| Reducción de desperdicio alimenticio | ODS 2 — Hambre cero |
+| Detección de plagas en cultivos | ODS 2 — Hambre cero |
+| Monitoreo de calidad del aire | ODS 11 — Ciudades sostenibles |
+| Marketplace local agricultor-consumidor | ODS 8 — Trabajo decente |
+| Propio (validado con instructor) | — |
 
 **Criterios para elegir bien:**
 - Que sea un dominio conocido por todo el equipo
 - Que tenga al menos 2 entidades que se relacionen de forma clara
 - Que no sea demasiado complejo (evitar más de 4 entidades)
 - Que sea demostrable en la presentación final
+- Que pueda integrar análisis con IA (Groq) de forma natural
 
 ### 4. Definir Entidades y Relaciones
 
@@ -133,14 +135,14 @@ Antes de escribir código es útil planificar visualmente la respuesta de la API
 
 ### 7. Organización del Equipo
 
-Para equipos de 2 a 4 personas, se recomienda:
+Grupos de **4 personas** con roles definidos:
 
-| Rol | Responsabilidades |
-|-----|-------------------|
-| Líder técnico | Coordina el equipo, revisa PRs, gestiona repositorio |
-| Modelador | Define modelos, DbContext, migraciones |
-| API developer | Implementa controladores, DTOs, validaciones |
-| Documentador | Escribe README, documenta endpoints, capturas |
+| Rol | Responsabilidad |
+|-----|----------------|
+| Backend / TL | Arquitectura, modelos, DbContext, endpoints principales, coordina al equipo |
+| API / IA | Integración con Groq, HttpClient, prompt engineering, endpoints de análisis |
+| BD / DTOs | Validaciones, DTOs, consultas LINQ, seed data, filtros y búsquedas |
+| Docs / QA | README, Swagger, capturas de pruebas, casos válidos e inválidos, presentación |
 
 Los roles no son excluyentes. Todos deben contribuir al código.
 
@@ -181,24 +183,46 @@ git push -u origin main
 | M4 - Documentación | Clase 19 | README, pruebas, capturas, video |
 | M5 - Presentación | Clase 20 | Slides, demo, entrega final |
 
+### 10. Check-ins Obligatorios (Semana 4)
+
+Cada equipo debe cumplir con **2 check-ins obligatorios** durante la semana 4 para verificar el avance real del proyecto:
+
+| Check-in | Cuándo | Qué debe funcionar |
+|----------|--------|--------------------|
+| Check-in 1 | Después de clase 17 | Modelos creados, DbContext + migración, al menos 1 endpoint funcional |
+| Check-in 2 | Después de clase 18 | CRUD completo, IA integrada (Groq), Swagger funcionando |
+
+**Penalización por incumplimiento:**
+- -0.2 puntos sobre la nota final por cada check-in sin avance real
+- Máximo descuento: -0.4 puntos
+- Se considera "sin avance real" cuando el repositorio no muestra commits nuevos o el código no compila
+
 ---
 
-## Ejemplo Práctico: Plan de Proyecto para "Sistema de Biblioteca"
+## Ejemplo Práctico: Plan de Proyecto para "Eco-puntos"
 
-**Tema:** Sistema de gestión de biblioteca
+**Tema:** Clasificador de puntos de reciclaje (ODS 12 — Producción responsables)
+
+**ODS:** ODS 12 — Producción y consumo responsables
 
 **Entidades:**
-- Libro (Id, Titulo, AutorId, ISBN, AnioPublicacion, Disponible)
-- Autor (Id, Nombre, Apellido, FechaNacimiento, Nacionalidad)
-- Prestamo (Id, LibroId, Usuario, FechaPrestamo, FechaDevolucion, Devuelto)
+- PuntoReciclaje (Id, Nombre, Direccion, TipoResiduo, Horario, Latitud, Longitud)
+- Residuo (Id, Tipo, Descripcion, InstruccionesReciclaje, TiempoDescomposicion)
+- Reporte (Id, PuntoReciclajeId, Usuario, Fecha, Foto, Observacion)
 
-**Relaciones:** Autor 1:N Libro, Libro 1:N Prestamo
+**Relaciones:** PuntoReciclaje 1:N Reporte
 
-**Endpoints planificados:** 13 endpoints (5 libros, 5 autores, 3 préstamos)
+**IA (Groq):** Endpoint `POST /api/reportes/{id}/analizar` que envía la observación del reporte a Groq para clasificar automáticamente el tipo de residuo y sugerir acciones.
 
-**Equipo:** 3 personas (líder, modelador, api developer)
+**Endpoints planificados:** 12 endpoints (5 puntos, 4 residuos, 3 reportes + 1 análisis IA)
 
-**Repositorio:** `github.com/equipo/sistema-biblioteca`
+**Equipo:**
+- Backend / TL: Arquitectura, endpoints principales, coordinación
+- API / IA: Integración con Groq, HttpClient, prompt engineering
+- BD / DTOs: Validaciones, DTOs, seed data, consultas LINQ
+- Docs / QA: README, Swagger, capturas, casos de prueba
+
+**Repositorio:** `github.com/equipo/eco-puntos-api`
 
 **Milestone 1:** Tema definido, entidades documentadas, endpoints listados, repo creado con README inicial.
 
