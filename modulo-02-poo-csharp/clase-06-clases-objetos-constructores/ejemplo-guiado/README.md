@@ -15,7 +15,11 @@ dotnet run
 
 ## Conceptos aplicados
 
-- Clase `Libro` con campos y constructor
+- Clase `Libro` con campos y constructores sobrecargados
+- Sobrecarga de constructores: sin params, con 2 params, con 3 params
+- Delegación entre constructores con `this(...)`
+- Sobrecarga de métodos: `MostrarInfo()` y `MostrarInfo(bool)`
+- Campo estático `totalLibros` compartido entre todas las instancias
+- Método estático `MostrarTotal()` accesible desde la clase
 - Creación de objetos con `new`
-- Método `MostrarInfo()` para comportamiento
 - Múltiples instancias independientes
