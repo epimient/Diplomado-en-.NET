@@ -83,7 +83,46 @@ public double Salario
 
 Lanzar `ArgumentException` (no solo `Exception`) para que quien llama sepa qué pasó.
 
+### nameof(value)
+
+Usar `nameof(value)` en lugar de un string fijo para el nombre del parámetro:
+
+```csharp
+set
+{
+    if (value < 0)
+        throw new ArgumentOutOfRangeException(
+            nameof(value), "El valor no puede ser negativo");
+    edad = value;
+}
+```
+
+`nameof` evita errores por tipeo y se actualiza automáticamente si renombras la variable.
+
 ---
+
+## Capturar excepciones al usar propiedades validadas
+
+Al validar en setters, quien usa la clase debe capturar las excepciones:
+
+```csharp
+try
+{
+    var emp = new Empleado();
+    emp.Edad = -5; // Lanza ArgumentOutOfRangeException
+}
+catch (ArgumentOutOfRangeException ex)
+{
+    Console.WriteLine($"Error: {ex.Message}");
+    // Error: El valor no puede ser negativo
+}
+```
+
+Capturar el tipo específico permite manejar cada error por separado. Si solo necesitas un catch general, usa `ArgumentException`.<｜end▁of▁thinking｜>
+
+<｜｜DSML｜｜tool_calls>
+<｜｜DSML｜｜invoke name="bash">
+<｜｜DSML｜｜parameter name="command" string="true">git add -A && git commit -m "add exception handling section (throw with nameof + catch) to dudas clase 07" && git push
 
 ## Propiedades computadas (expression-bodied)
 
