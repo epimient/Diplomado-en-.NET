@@ -422,6 +422,46 @@ El constructor sin parámetros delega en el de dos parámetros para evitar repet
 
 ---
 
+### 1.16 ¿Cuál es la diferencia entre declarar una clase como `class Libro` y `public class Libro`?
+
+En C#, la diferencia principal radica en el **nivel de accesibilidad (modificador de acceso)** de la clase fuera del proyecto (ensamblado):
+
+- **`class Libro` (Sin modificador explícito):** C# le asigna por defecto el modificador **`internal`**. Significa que la clase solo es accesible dentro del **mismo proyecto** (`.csproj`).
+- **`public class Libro`:** La clase es accesible desde **cualquier lugar**, tanto dentro del mismo proyecto como desde otros proyectos o librerías externas que agreguen una referencia a este proyecto.
+
+| Declaración | Equivalente real | ¿Accesible dentro del mismo proyecto? | ¿Accesible desde otros proyectos / librerías? |
+| :--- | :--- | :---: | :---: |
+| `class Libro` | `internal class Libro` | **Sí** | ❌ No |
+| `public class Libro` | `public class Libro` | **Sí** | **Sí** |
+
+*Nota:* Si todos los archivos están en el mismo proyecto (como en las aplicaciones de consola del curso), ambas declaraciones funcionarán de la misma manera.
+
+---
+
+### 1.17 ¿Cuáles son las clases principales que ya vienen por defecto en .NET?
+
+El SDK de .NET incluye la **Base Class Library (BCL)**, una biblioteca con miles de clases ya preparadas y optimizadas para evitar reinventar la rueda:
+
+1. **Entrada / Salida (`System` / `System.IO`):**
+   - `Console`: Para interactuar con la terminal (`Console.WriteLine()`, `Console.ReadLine()`).
+   - `File` / `Directory`: Para gestionar archivos y carpetas en disco (`File.ReadAllText()`, `File.WriteAllText()`).
+2. **Fechas y Matemáticas (`System`):**
+   - `DateTime`: Para manipular fechas y horas (`DateTime.Now`).
+   - `Math`: Para cálculos y funciones matemáticas (`Math.Sqrt()`, `Math.Pow()`, `Math.Max()`).
+   - `Random`: Para generar números aleatorios (`new Random().Next(1, 100)`).
+3. **Manejo de Cadenas (`System` / `System.Text`):**
+   - `String` (`string`): Para manipular cadenas con métodos como `.ToUpper()`, `.Contains()`, `.Trim()`.
+   - `StringBuilder`: Para construir grandes volúmenes de texto eficientemente.
+4. **Colecciones Genéricas (`System.Collections.Generic`):**
+   - `List<T>`: Listas dinámicas.
+   - `Dictionary<TKey, TValue>`: Diccionarios de tipo clave-valor.
+5. **Redes y Comunicaciones (`System.Net.Http`):**
+   - `HttpClient`: Para realizar peticiones HTTP a APIs y servicios web.
+6. **La clase raíz (`System.Object` / `object`):**
+   - Absolutamente todas las clases en C# heredan de `Object`, lo que les otorga métodos base como `.ToString()`, `.Equals()` y `.GetType()`.
+
+---
+
 ## 2. Aplicación en el ejemplo guiado
 
 El ejemplo de la clase es un sistema de biblioteca:
