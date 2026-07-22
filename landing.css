@@ -164,7 +164,7 @@ pre code {
 .view { display: none; }
 .view--landing { display: block; }
 .view--markdown.show, .view--iframe.show { display: flex; flex-direction: column; }
-.view--iframe.show { display: flex; }
+.view--iframe.show { display: flex; flex: 1; min-height: 0; }
 
 /* === LANDING VIEW === */
 .landing { max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem; }
