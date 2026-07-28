@@ -88,6 +88,11 @@ Cada clase incluye: teoria en markdown, slides navegables, ejemplo guiado, ejerc
 | Visual Studio Code | — | Editor de codigo |
 | Git + GitHub | — | Control de versiones |
 
+## Horario de Reuniones ultima semana
+* Primera reunion - Jueves 30 - Reunion de socialización de ideas.
+* Segunda Reunión - Martes 04 - Reunion de adelanto.
+*  Reunion Final - Sabado 08 - Presentar el proyecto final.
+
 ## Repositorios del curso
 
 | Repositorio | Contenido |
